@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X, Sun, Moon, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/cn";
+import { useMounted } from "@/hooks/use-mounted";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -17,10 +18,32 @@ const navLinks = [
   { label: "About", href: "/about" },
 ];
 
+function ThemeToggle({ className }: { className?: string }) {
+  const { theme, setTheme } = useTheme();
+  const mounted = useMounted();
+
+  return (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className={cn("rounded-full", className)}
+      aria-label="Toggle theme"
+    >
+      {!mounted ? (
+        <div className="h-5 w-5" />
+      ) : theme === "dark" ? (
+        <Sun className="h-5 w-5" />
+      ) : (
+        <Moon className="h-5 w-5" />
+      )}
+    </Button>
+  );
+}
+
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -70,18 +93,7 @@ export default function Navbar() {
 
             {/* Actions */}
             <div className="hidden md:flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="rounded-full"
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
+              <ThemeToggle />
               <Link href="/login">
                 <Button variant="ghost" size="sm" className="rounded-full">
                   Log In
@@ -99,18 +111,7 @@ export default function Navbar() {
 
             {/* Mobile Menu Toggle */}
             <div className="flex md:hidden items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="rounded-full"
-              >
-                {theme === "dark" ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </Button>
+              <ThemeToggle />
               <Button
                 variant="ghost"
                 size="icon"
