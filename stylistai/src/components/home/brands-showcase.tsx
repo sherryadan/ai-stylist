@@ -20,10 +20,10 @@ const priceRangeColors: Record<string, string> = {
 
 export default function BrandsShowcase() {
   return (
-    <section className="py-24">
+    <section className="py-12 md:py-24">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 md:mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold">
               Trusted by Leading <span className="gradient-text">Brands</span>
             </h2>

@@ -9,14 +9,14 @@ import { cn } from "@/lib/cn";
 
 export default function Testimonials() {
   return (
-    <section className="py-24 bg-secondary/30 relative overflow-hidden">
+    <section className="py-12 md:py-24 bg-secondary/30 relative overflow-hidden">
       {/* Background gradient orbs */}
       <div className="absolute -top-40 -right-40 w-[400px] h-[400px] rounded-full bg-purple-500/10 blur-[100px] pointer-events-none" />
       <div className="absolute -bottom-40 -left-40 w-[400px] h-[400px] rounded-full bg-pink-500/10 blur-[100px] pointer-events-none" />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <FadeIn>
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 md:mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold">
               Loved by <span className="gradient-text">Thousands</span>
             </h2>

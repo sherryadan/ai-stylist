@@ -143,7 +143,7 @@ export default function Hero() {
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.6 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-x-12 gap-y-4"
+          className="mt-16 flex flex-wrap items-center justify-center gap-x-6 md:gap-x-12 gap-y-4"
         >
           {[
             ["10K+", "Outfits Styled"],

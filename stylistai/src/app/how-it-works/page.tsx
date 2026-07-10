@@ -123,7 +123,7 @@ export default function HowItWorksPage() {
         </div>
         <div className="relative mx-auto max-w-6xl text-center">
           <FadeIn>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight">
               How It <span className="gradient-text">Works</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
@@ -137,7 +137,7 @@ export default function HowItWorksPage() {
       {/* Steps */}
       <section className="px-4 pb-20">
         <div className="mx-auto max-w-4xl">
-          <StaggerContainer className="space-y-24">
+          <StaggerContainer className="space-y-12 md:space-y-24">
             {steps.map((step, index) => (
               <StaggerItem key={step.number}>
                 <div
@@ -150,7 +150,7 @@ export default function HowItWorksPage() {
                       index % 2 === 1 ? "md:order-2" : ""
                     }`}
                   >
-                    <div className="text-6xl font-bold gradient-text opacity-30">
+                    <div className="text-4xl md:text-6xl font-bold gradient-text opacity-30">
                       {step.number}
                     </div>
                     <h3 className="text-2xl font-bold">{step.title}</h3>
@@ -170,7 +170,7 @@ export default function HowItWorksPage() {
                     </ul>
                   </div>
                   <div
-                    className={`relative aspect-square overflow-hidden rounded-2xl ${
+                    className={`relative aspect-video md:aspect-square overflow-hidden rounded-2xl ${
                       index % 2 === 1 ? "md:order-1" : ""
                     }`}
                   >

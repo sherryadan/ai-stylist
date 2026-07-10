@@ -122,7 +122,7 @@ export default function Footer() {
                 Get style tips and product updates.
               </p>
             </div>
-            <form className="flex gap-2 w-full sm:w-auto" onSubmit={(e) => e.preventDefault()}>
+            <form className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto" onSubmit={(e) => e.preventDefault()}>
               <Input
                 placeholder="your@email.com"
                 className="max-w-xs rounded-full bg-secondary border-0"

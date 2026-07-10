@@ -102,7 +102,7 @@ export default function SavedOutfitsPage() {
           <FadeIn>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-4xl font-bold">
+                <h1 className="text-3xl sm:text-4xl font-bold">
                   Saved <span className="gradient-text">Outfits</span>
                 </h1>
                 <p className="mt-1 text-muted-foreground">

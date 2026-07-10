@@ -48,7 +48,7 @@ export default function NotFoundPage() {
       <FadeIn>
         <div className="relative text-center">
           {/* 404 */}
-          <div className="text-9xl md:text-[10rem] font-bold leading-none">
+          <div className="text-7xl sm:text-9xl md:text-[10rem] font-bold leading-none">
             <span className="gradient-text">4</span>
             <span className="gradient-text">0</span>
             <span className="gradient-text">4</span>

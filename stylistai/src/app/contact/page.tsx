@@ -76,7 +76,7 @@ export default function ContactPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full gradient-bg">
               <MessageCircle className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight">
               Get in <span className="gradient-text">Touch</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">

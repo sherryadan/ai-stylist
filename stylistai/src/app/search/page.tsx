@@ -208,8 +208,18 @@ export default function SearchPage() {
         <div className="flex gap-8">
           {/* Filters Sidebar */}
           {showFilters && (
-            <FadeIn direction="left" className="hidden lg:block">
-              <div className="sticky top-24 w-64 shrink-0 space-y-6 rounded-xl border bg-card p-6">
+            <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur overflow-y-auto p-6 pt-20 lg:static lg:z-auto lg:bg-transparent lg:backdrop-blur-none lg:overflow-visible lg:p-0 lg:block">
+              <div className="flex items-center justify-between mb-6 lg:hidden">
+                <h3 className="font-semibold">Filters</h3>
+                <button
+                  onClick={() => setShowFilters(false)}
+                  className="text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Close
+                </button>
+              </div>
+              <FadeIn direction="left">
+                <div className="sticky top-24 w-64 shrink-0 space-y-6 rounded-xl border bg-card p-6">
                 <div className="flex items-center justify-between">
                   <h3 className="font-semibold">Filters</h3>
                   {hasAnyFilters && (
@@ -359,8 +369,9 @@ export default function SearchPage() {
                     ))}
                   </div>
                 </div>
-              </div>
-            </FadeIn>
+                </div>
+              </FadeIn>
+            </div>
           )}
 
           {/* Mobile Filter Button */}

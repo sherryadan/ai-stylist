@@ -59,7 +59,7 @@ function AnimatedStat({
 
 export default function Stats() {
   return (
-    <section className="py-20 border-y border-border">
+    <section className="py-12 md:py-20 border-y border-border">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">

@@ -69,7 +69,7 @@ export default function AboutPage() {
         </div>
         <div className="relative mx-auto max-w-6xl text-center">
           <FadeIn>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight">
               About <span className="gradient-text">StylistAI</span>
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
@@ -82,7 +82,7 @@ export default function AboutPage() {
       </section>
 
       {/* Story */}
-      <section className="border-y bg-secondary/50 px-4 py-20">
+      <section className="border-y bg-secondary/50 px-4 py-12 md:py-20">
         <div className="mx-auto max-w-6xl">
           <FadeIn>
             <div className="grid items-center gap-12 md:grid-cols-2">
@@ -120,7 +120,7 @@ export default function AboutPage() {
       </section>
 
       {/* Values */}
-      <section className="px-4 py-20">
+      <section className="px-4 py-12 md:py-20">
         <div className="mx-auto max-w-6xl">
           <FadeIn>
             <div className="text-center">
@@ -151,7 +151,7 @@ export default function AboutPage() {
       </section>
 
       {/* Stats */}
-      <section className="gradient-bg px-4 py-20">
+      <section className="gradient-bg px-4 py-12 md:py-20">
         <div className="mx-auto max-w-6xl">
           <StaggerContainer className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {stats.map((stat) => (
@@ -168,7 +168,7 @@ export default function AboutPage() {
       </section>
 
       {/* Team */}
-      <section className="px-4 py-20">
+      <section className="px-4 py-12 md:py-20">
         <div className="mx-auto max-w-6xl">
           <FadeIn>
             <div className="text-center">
@@ -199,7 +199,7 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="border-t px-4 py-20">
+      <section className="border-t px-4 py-12 md:py-20">
         <div className="mx-auto max-w-6xl text-center">
           <FadeIn>
             <h2 className="text-3xl font-bold">Join Us on This Journey</h2>

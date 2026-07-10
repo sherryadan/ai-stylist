@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 
 export default function CtaSection() {
   return (
-    <section className="relative py-24 overflow-hidden">
+    <section className="relative py-12 md:py-24 overflow-hidden">
       {/* Gradient background */}
       <div className="absolute inset-0 gradient-bg opacity-90" />
 

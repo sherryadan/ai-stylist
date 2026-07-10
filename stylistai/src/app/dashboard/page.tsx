@@ -141,7 +141,7 @@ export default function DashboardPage() {
               className="absolute inset-0 bg-black/50"
               onClick={() => setSidebarOpen(false)}
             />
-            <div className="absolute left-0 top-0 h-full w-64 bg-background p-6 shadow-xl">
+            <div className="absolute left-0 top-0 h-full w-64 max-w-[85vw] bg-background p-6 shadow-xl">
               <div className="flex items-center gap-3 mb-8">
                 <div className="flex h-10 w-10 items-center justify-center rounded-full gradient-bg text-sm font-bold text-white">
                   S

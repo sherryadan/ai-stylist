@@ -49,7 +49,7 @@ export default function PricingPage() {
         </div>
         <div className="relative mx-auto max-w-6xl text-center">
           <FadeIn>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight">
               Simple, Transparent{" "}
               <span className="gradient-text">Pricing</span>
             </h1>
@@ -67,7 +67,7 @@ export default function PricingPage() {
           <button
             onClick={() => setBilling("monthly")}
             className={cn(
-              "text-sm font-medium transition-colors",
+              "px-4 py-3 min-h-[44px] rounded-full text-sm font-medium transition-colors",
               billing === "monthly"
                 ? "text-foreground"
                 : "text-muted-foreground"
@@ -76,7 +76,7 @@ export default function PricingPage() {
             Monthly
           </button>
           <div
-            className="flex h-6 w-11 cursor-pointer items-center rounded-full border-2 border-border bg-secondary"
+            className="flex h-8 w-14 cursor-pointer items-center rounded-full border-2 border-border bg-secondary"
             onClick={() =>
               setBilling(billing === "monthly" ? "annual" : "monthly")
             }
@@ -91,7 +91,7 @@ export default function PricingPage() {
           <button
             onClick={() => setBilling("annual")}
             className={cn(
-              "text-sm font-medium transition-colors",
+              "px-4 py-3 min-h-[44px] rounded-full text-sm font-medium transition-colors",
               billing === "annual"
                 ? "text-foreground"
                 : "text-muted-foreground"

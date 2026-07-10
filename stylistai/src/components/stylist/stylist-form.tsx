@@ -90,7 +90,7 @@ function PersonalInfoStep({ formData, updateFormData }: StepRendererProps) {
               type="button"
               onClick={() => updateFormData({ gender: opt.value })}
               className={cn(
-                "flex-1 min-w-[100px] rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all",
+                "min-w-0 rounded-lg border-2 px-4 py-3 text-sm font-medium transition-all",
                 formData.gender === opt.value
                   ? "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-black"
                   : "border-neutral-200 hover:border-neutral-400 dark:border-neutral-700 dark:hover:border-neutral-500"
@@ -594,7 +594,7 @@ export default function StylistForm() {
               >
                 <div
                   className={cn(
-                    "flex items-center justify-center h-10 w-10 rounded-full border-2 transition-all",
+                    "flex items-center justify-center h-11 w-11 rounded-full border-2 transition-all",
                     isActive &&
                       "border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-black",
                     isCompleted &&
@@ -652,7 +652,7 @@ export default function StylistForm() {
       </div>
 
       {/* Step Content with Animation */}
-      <div className="relative min-h-[400px]">
+      <div className="relative min-h-[300px] md:min-h-[400px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}

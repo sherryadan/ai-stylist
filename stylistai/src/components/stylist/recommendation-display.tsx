@@ -259,7 +259,7 @@ function OutfitItemCard({ item }: { item: OutfitItem }) {
           <Button
             variant="outline"
             size="sm"
-            className="w-full h-7 text-[11px] gap-1 mt-1"
+            className="w-full h-10 text-xs gap-1 mt-1"
             onClick={() => window.open(product.purchaseUrl, "_blank", "noopener,noreferrer")}
           >
             Buy from {product.brand}
@@ -463,7 +463,7 @@ export default function RecommendationDisplay({
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Your AI Styled Outfits
           </h1>
           <p className="text-sm text-neutral-500 mt-1">

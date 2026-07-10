@@ -45,7 +45,7 @@ export default function FAQPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full gradient-bg">
               <HelpCircle className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-bold tracking-tight">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold tracking-tight">
               Frequently Asked{" "}
               <span className="gradient-text">Questions</span>
             </h1>
@@ -67,7 +67,7 @@ export default function FAQPage() {
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
                   className={cn(
-                    "rounded-full px-4 py-2 text-sm font-medium transition-all",
+                    "rounded-full px-4 py-3 min-h-[44px] text-sm font-medium transition-all",
                     activeCategory === cat.id
                       ? "gradient-bg text-white"
                       : "bg-secondary text-muted-foreground hover:bg-secondary/80"

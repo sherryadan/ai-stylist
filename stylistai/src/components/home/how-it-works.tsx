@@ -45,10 +45,10 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="py-24 relative">
+    <section className="py-12 md:py-24 relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeIn>
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 md:mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold">
               How It <span className="gradient-text">Works</span>
             </h2>
