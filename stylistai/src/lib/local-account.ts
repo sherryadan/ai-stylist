@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import type { StylingRequest } from "./styling-request";
 import type { MatchedLook } from "@/services/menswear-matching";
 import type { CatalogItem } from "@/data/sample-menswear";
+import type { StylingBlueprint } from "@/services/styling-blueprint";
 
 const cookieName = "stylist-local-session";
 const sessionSeconds = 8 * 60 * 60;
@@ -37,6 +38,10 @@ function accountDatabase() {
         id TEXT PRIMARY KEY,
         payload TEXT NOT NULL,
         created_at INTEGER NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS request_blueprint (
+        request_id TEXT PRIMARY KEY REFERENCES styling_request(id) ON DELETE CASCADE,
+        payload TEXT
       );
       CREATE TABLE IF NOT EXISTS saved_look (
         request_id TEXT NOT NULL REFERENCES styling_request(id) ON DELETE CASCADE,
@@ -163,6 +168,27 @@ export async function readLocalStylingRequest(id: string): Promise<StylingReques
   const stored = accountDatabase().prepare("SELECT payload FROM styling_request WHERE id = ?")
     .get(id) as { payload: string } | undefined;
   return stored && JSON.parse(stored.payload);
+}
+
+export async function claimBlueprintRequest(id: string) {
+  if (!(await currentLocalAccount())) return false;
+  return Boolean(accountDatabase().prepare(`
+    INSERT INTO request_blueprint (request_id)
+    SELECT id FROM styling_request WHERE id = ?
+    ON CONFLICT(request_id) DO NOTHING
+  `).run(id).changes);
+}
+
+export async function storeBlueprint(id: string, blueprint: StylingBlueprint) {
+  if (!(await currentLocalAccount())) return;
+  accountDatabase().prepare("UPDATE request_blueprint SET payload = ? WHERE request_id = ?")
+    .run(JSON.stringify(blueprint), id);
+}
+
+export async function readBlueprint(id: string): Promise<StylingBlueprint | undefined> {
+  if (!(await currentLocalAccount())) return;
+  const row = accountDatabase().prepare("SELECT payload FROM request_blueprint WHERE request_id = ?").get(id);
+  return typeof row?.payload === "string" ? JSON.parse(row.payload) : undefined;
 }
 
 export async function listLocalStylingRequests(before?: string) {
