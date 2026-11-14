@@ -1,6 +1,7 @@
 import { currentLocalAccount, localAccountEnabled, readLocalProfile } from "@/lib/local-account";
 import { signIn, signOut } from "./actions";
 import { ProfileForm } from "./profile-form";
+import Link from "next/link";
 
 function ageDisplay(birthDate: string, timezone: string) {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(new Date());
@@ -31,6 +32,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           {signedIn ? <>
             {saved === "1" && <p role="status" className="mb-5 text-green-900">Profile saved.</p>}
             <ProfileForm profile={profile} />
+            {profile && <Link className="mt-6 inline-block underline underline-offset-4" href="/styling-requests">Plan a look</Link>}
             <form action={signOut} className="mt-6">
               <button className="underline underline-offset-4">Sign out</button>
             </form>
