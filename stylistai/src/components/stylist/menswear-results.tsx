@@ -1,6 +1,6 @@
 import type { StylingRequest } from "@/lib/styling-request";
 import Link from "next/link";
-import { sampleMenswear } from "@/data/sample-menswear";
+import { currentSampleCatalog } from "@/lib/sample-catalog";
 import { matchMenswear } from "@/services/menswear-matching";
 import { MenswearLookCard } from "./menswear-look-card";
 import { readLocalLookFeedback } from "@/lib/local-account";
@@ -8,7 +8,7 @@ import { readLocalLookFeedback } from "@/lib/local-account";
 const money = (subtotal: number) => `PKR ${subtotal.toLocaleString("en-PK")}`;
 
 export async function MenswearResults({ request }: { request: StylingRequest }) {
-  const { looks, eligible, options } = matchMenswear(request, sampleMenswear);
+  const { looks, eligible, options } = matchMenswear(request, currentSampleCatalog());
   const feedback = await readLocalLookFeedback(request.id);
 
   return (

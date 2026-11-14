@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { sampleMenswear } from "@/data/sample-menswear";
+import { currentSampleCatalog } from "@/lib/sample-catalog";
 import { readLocalStylingRequest, removeLocalLook, saveLocalLook } from "@/lib/local-account";
 import { matchMenswear } from "@/services/menswear-matching";
 
@@ -15,7 +15,7 @@ export async function saveLook(_: string, form: FormData): Promise<string> {
   const { requestId, lookId } = parsed.data;
   const request = await readLocalStylingRequest(requestId);
   if (!request) return "Your request is unavailable. Sign in and try again.";
-  const look = matchMenswear(request, sampleMenswear).options.find(({ id }) => id === lookId);
+  const look = matchMenswear(request, currentSampleCatalog()).options.find(({ id }) => id === lookId);
   if (!look) return "This look no longer meets the request’s constraints.";
   if (!(await saveLocalLook(requestId, look))) return "Sign in again to save the look.";
   revalidatePath("/saved-outfits");

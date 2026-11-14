@@ -1,8 +1,9 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { cookies } from "next/headers";
 import type { StylingRequest } from "./styling-request";
 import type { MatchedLook } from "@/services/menswear-matching";
+import type { CatalogItem } from "@/data/sample-menswear";
 
 const cookieName = "stylist-local-session";
 const sessionSeconds = 8 * 60 * 60;
@@ -49,6 +50,16 @@ function accountDatabase() {
         look_id TEXT NOT NULL,
         rating TEXT NOT NULL CHECK (rating IN ('like', 'dislike')),
         PRIMARY KEY (request_id, look_id)
+      );
+      CREATE TABLE IF NOT EXISTS local_catalog_item (
+        id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS local_catalog_import (
+        id INTEGER PRIMARY KEY,
+        row_count INTEGER NOT NULL,
+        created_at INTEGER NOT NULL
       );
     `);
     database = connection;
@@ -203,4 +214,42 @@ export async function readLocalLookFeedback(requestId: string): Promise<Record<s
   if (!(await currentLocalAccount())) return {};
   const rows = accountDatabase().prepare("SELECT look_id, rating FROM look_feedback WHERE request_id = ?").all(requestId);
   return Object.fromEntries(rows.map((row) => [String(row.look_id), String(row.rating)]));
+}
+
+export async function canAdministerLocalCatalog(token: string) {
+  const secret = process.env.STYLIST_LOCAL_ADMIN_TOKEN;
+  if (!secret || secret.length < 24 || token.length > 256 || !(await currentLocalAccount())) return false;
+  return timingSafeEqual(Buffer.from(digest(token)), Buffer.from(digest(secret)));
+}
+
+export async function importLocalCatalog(token: string, items: CatalogItem[]) {
+  if (!(await canAdministerLocalCatalog(token))) return "denied";
+  const db = accountDatabase();
+  const now = Date.now();
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    const unique = new Set(db.prepare("SELECT id FROM local_catalog_item").all().map(({ id }) => id));
+    for (const item of items) unique.add(item.id);
+    if (unique.size > 100) {
+      db.exec("ROLLBACK");
+      return "limit";
+    }
+    const upsert = db.prepare(`
+      INSERT INTO local_catalog_item VALUES (?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET payload = excluded.payload, updated_at = excluded.updated_at
+    `);
+    for (const item of items) upsert.run(item.id, JSON.stringify(item), now);
+    db.prepare("INSERT INTO local_catalog_import (row_count, created_at) VALUES (?, ?)").run(items.length, now);
+    db.exec("COMMIT");
+    return "saved";
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+}
+
+export function listImportedSamples(): CatalogItem[] {
+  if (!localAccountEnabled()) return [];
+  return accountDatabase().prepare("SELECT payload FROM local_catalog_item ORDER BY id").all()
+    .map((row) => JSON.parse(String(row.payload)) as CatalogItem);
 }

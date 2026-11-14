@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { sampleMenswear } from "@/data/sample-menswear";
+import { currentSampleCatalog } from "@/lib/sample-catalog";
 
 export default function SampleCatalogPage() {
   return (
@@ -9,14 +9,16 @@ export default function SampleCatalogPage() {
         <p className="mt-4 max-w-lg text-stone-700">Explore the demonstration menswear used by the local prototype. Prices and sizes are sample values. Shopping links are unavailable.</p>
         <Link href="/styling-requests" className="mt-5 inline-block underline underline-offset-4">Plan a look</Link>
         <ul className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {sampleMenswear.map((item) => (
+          {currentSampleCatalog().map((item) => (
             <li key={item.id} className="overflow-hidden rounded-2xl border border-stone-300 bg-[#fffbf5] motion-safe:transition-transform motion-safe:hover:-translate-y-1">
               <div aria-hidden="true" className="h-28" style={{ backgroundColor: item.swatch }} />
               <div className="p-5">
                 <p className="text-sm text-stone-700">{item.category} · {item.color}</p>
                 <h2 className="mt-1 font-serif text-2xl">{item.name}</h2>
                 <p className="mt-2">PKR {item.price.toLocaleString("en-PK")}</p>
-                <p className="mt-2 text-sm text-stone-700">Sample sizes {item.variants.map(({ size }) => size).join(", ")}</p>
+                <p className="mt-2 text-sm text-stone-700">{item.variants.length
+                  ? `Sample sizes ${item.variants.map(({ size }) => size).join(", ")}`
+                  : "Unavailable in the sample catalog"}</p>
               </div>
             </li>
           ))}
