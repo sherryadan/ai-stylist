@@ -9,7 +9,12 @@ import { submitRequest } from "./actions";
 const field = "mt-2 w-full rounded-lg border border-stone-400 bg-white px-3 py-2 text-stone-950";
 const button = "rounded-full bg-stone-950 px-5 py-3 text-white hover:bg-orange-950 disabled:opacity-60";
 
-export function RequestForm({ id, profile, initialCategory }: { id: string; profile: LocalProfile; initialCategory?: StylingRequest["category"] }) {
+export function RequestForm({ id, profile, initialCategory, initialOccasion }: {
+  id: string;
+  profile: LocalProfile;
+  initialCategory?: StylingRequest["category"];
+  initialOccasion?: string;
+}) {
   const [request, setRequest] = useState<StylingRequest>();
   const [error, setError] = useState("");
   const [result, action, pending] = useActionState(submitRequest, "");
@@ -29,7 +34,7 @@ export function RequestForm({ id, profile, initialCategory }: { id: string; prof
       <form hidden={Boolean(request)} onSubmit={review}>
         <input type="hidden" name="id" value={id} />
         <div className="grid gap-5 sm:grid-cols-2">
-          <label>Occasion<select name="occasion" className={field} required defaultValue="">
+          <label>Occasion<select name="occasion" className={field} required defaultValue={initialOccasion ?? ""}>
             <option value="" disabled>Select an occasion</option>
             {occasions.map((occasion) => <option key={occasion.id} value={occasion.id}>{occasion.name}</option>)}
           </select></label>
