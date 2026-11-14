@@ -17,6 +17,12 @@ The shared test profile and session records are stored in the ignored
 `.stylist-local.sqlite` file. Use sample information. This sign-in path requires
 the opt-in environment setting and is available only in development mode.
 
+To validate and import a demonstration CSV, set `STYLIST_LOCAL_ADMIN_TOKEN` to a
+private value of at least 24 characters before starting the development server.
+Sign in locally and open `/catalog-admin` to see the template. Imports update by
+SKU. Use an empty stock size list to remove an imported item from matching.
+Imported items are displayed as samples and have no external purchase URLs.
+
 First, run the development server:
 
 ```bash
