@@ -1,15 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { MatchedLook } from "@/services/menswear-matching";
+import { saveLook } from "@/app/saved-outfits/actions";
 
 const money = (subtotal: number) => `PKR ${subtotal.toLocaleString("en-PK")}`;
 
-export function MenswearLookCard({ initial, options, dressCode }: {
+function SaveLookForm({ requestId, lookId }: { requestId: string; lookId: string }) {
+  const [status, action, pending] = useActionState(saveLook, "");
+  return (
+    <form className="mt-4" action={action}>
+      <input type="hidden" name="requestId" value={requestId} />
+      <input type="hidden" name="lookId" value={lookId} />
+      <button className="rounded-full bg-stone-950 px-4 py-2 text-sm text-white disabled:opacity-60" disabled={pending || status === "Look saved."}>
+        {pending ? "Saving…" : status === "Look saved." ? "Saved" : "Save look"}
+      </button>
+      {status && <p className="mt-2 text-sm" role="status">{status}</p>}
+    </form>
+  );
+}
+
+export function MenswearLookCard({ initial, options, dressCode, requestId }: {
   initial: MatchedLook;
   options: MatchedLook[];
   dressCode: string;
+  requestId: string;
 }) {
   const [look, setLook] = useState(initial);
   const [slot, setSlot] = useState<string>();
@@ -65,6 +81,7 @@ export function MenswearLookCard({ initial, options, dressCode }: {
       )}
       {look.id !== initial.id && <button type="button" className="mt-3 text-sm underline underline-offset-4"
         onClick={() => { setLook(initial); setSlot(undefined); }}>Reset to original look</button>}
+      <SaveLookForm key={look.id} requestId={requestId} lookId={look.id} />
     </motion.li>
   );
 }

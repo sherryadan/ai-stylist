@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { cookies } from "next/headers";
 import type { StylingRequest } from "./styling-request";
+import type { MatchedLook } from "@/services/menswear-matching";
 
 const cookieName = "stylist-local-session";
 const sessionSeconds = 8 * 60 * 60;
@@ -35,6 +36,13 @@ function accountDatabase() {
         id TEXT PRIMARY KEY,
         payload TEXT NOT NULL,
         created_at INTEGER NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS saved_look (
+        request_id TEXT NOT NULL REFERENCES styling_request(id) ON DELETE CASCADE,
+        look_id TEXT NOT NULL,
+        payload TEXT NOT NULL,
+        saved_at INTEGER NOT NULL,
+        PRIMARY KEY (request_id, look_id)
       );
     `);
     database = connection;
@@ -137,4 +145,26 @@ export async function listLocalStylingRequests(before?: string) {
     request: JSON.parse(String(row.payload)) as StylingRequest,
     createdAt: Number(row.created_at),
   }));
+}
+
+export async function saveLocalLook(requestId: string, look: MatchedLook) {
+  if (!(await currentLocalAccount())) return false;
+  accountDatabase().prepare(`
+    INSERT INTO saved_look (request_id, look_id, payload, saved_at) VALUES (?, ?, ?, ?)
+    ON CONFLICT(request_id, look_id) DO NOTHING
+  `).run(requestId, look.id, JSON.stringify(look), Date.now());
+  return true;
+}
+
+export async function listLocalLooks(offset: number) {
+  if (!(await currentLocalAccount())) return [];
+  return accountDatabase().prepare("SELECT request_id, payload FROM saved_look ORDER BY saved_at DESC, request_id, look_id LIMIT 21 OFFSET ?")
+    .all(offset)
+    .map((row) => ({ requestId: String(row.request_id), look: JSON.parse(String(row.payload)) as MatchedLook }));
+}
+
+export async function removeLocalLook(requestId: string, lookId: string) {
+  if (!(await currentLocalAccount())) return false;
+  accountDatabase().prepare("DELETE FROM saved_look WHERE request_id = ? AND look_id = ?").run(requestId, lookId);
+  return true;
 }
