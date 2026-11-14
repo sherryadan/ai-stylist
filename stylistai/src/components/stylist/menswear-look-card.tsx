@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { MatchedLook } from "@/services/menswear-matching";
 import { saveLook } from "@/app/saved-outfits/actions";
+import { rateLook } from "@/app/styling-requests/feedback";
 
 const money = (subtotal: number) => `PKR ${subtotal.toLocaleString("en-PK")}`;
 
@@ -21,11 +22,32 @@ function SaveLookForm({ requestId, lookId }: { requestId: string; lookId: string
   );
 }
 
-export function MenswearLookCard({ initial, options, dressCode, requestId }: {
+function LookFeedback({ requestId, lookId, rating }: { requestId: string; lookId: string; rating?: string }) {
+  const [result, action, pending] = useActionState(rateLook, rating ?? "");
+  const current = result === "like" || result === "dislike" ? result : rating;
+  return (
+    <form action={action} className="mt-4 flex flex-wrap gap-2" aria-label="Rate this look">
+      <input type="hidden" name="requestId" value={requestId} />
+      <input type="hidden" name="lookId" value={lookId} />
+      {(["like", "dislike"] as const).map((value) => (
+        <button key={value} type="submit" name="rating" value={value} aria-pressed={current === value} disabled={pending}
+          className="rounded-full border border-stone-400 px-3 py-1.5 text-sm aria-pressed:border-stone-950 aria-pressed:bg-stone-950 aria-pressed:text-white disabled:opacity-60">
+          {value === "like" ? "Like" : "Dislike"}
+        </button>
+      ))}
+      <p className="basis-full text-sm" role="status">
+        {pending ? "Recording feedback…" : current === result && current ? "Your rating is recorded." : result}
+      </p>
+    </form>
+  );
+}
+
+export function MenswearLookCard({ initial, options, dressCode, requestId, feedback }: {
   initial: MatchedLook;
   options: MatchedLook[];
   dressCode: string;
   requestId: string;
+  feedback: Record<string, string>;
 }) {
   const [look, setLook] = useState(initial);
   const [slot, setSlot] = useState<string>();
@@ -82,6 +104,7 @@ export function MenswearLookCard({ initial, options, dressCode, requestId }: {
       {look.id !== initial.id && <button type="button" className="mt-3 text-sm underline underline-offset-4"
         onClick={() => { setLook(initial); setSlot(undefined); }}>Reset to original look</button>}
       <SaveLookForm key={look.id} requestId={requestId} lookId={look.id} />
+      <LookFeedback key={`feedback-${look.id}`} requestId={requestId} lookId={look.id} rating={feedback[look.id]} />
     </motion.li>
   );
 }
