@@ -81,8 +81,9 @@ export type LocalProfile = {
 
 export async function readLocalProfile() {
   if (!(await currentLocalAccount())) return undefined;
-  return accountDatabase().prepare("SELECT name, birth_date, preference, timezone, city, gender, clothing_size, shoe_size FROM local_profile WHERE id = 1")
+  const profile = accountDatabase().prepare("SELECT name, birth_date, preference, timezone, city, gender, clothing_size, shoe_size FROM local_profile WHERE id = 1")
     .get() as LocalProfile | undefined;
+  return profile && { ...profile };
 }
 
 export async function writeLocalProfile(profile: LocalProfile) {
