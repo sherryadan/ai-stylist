@@ -124,3 +124,17 @@ export async function readLocalStylingRequest(id: string): Promise<StylingReques
     .get(id) as { payload: string } | undefined;
   return stored && JSON.parse(stored.payload);
 }
+
+export async function listLocalStylingRequests(before?: string) {
+  if (!(await currentLocalAccount())) return [];
+  const db = accountDatabase();
+  const cursor = before && db.prepare("SELECT id, created_at FROM styling_request WHERE id = ?").get(before);
+  const rows = cursor
+    ? db.prepare("SELECT payload, created_at FROM styling_request WHERE (created_at, id) < (?, ?) ORDER BY created_at DESC, id DESC LIMIT 21")
+      .all(cursor.created_at, cursor.id)
+    : db.prepare("SELECT payload, created_at FROM styling_request ORDER BY created_at DESC, id DESC LIMIT 21").all();
+  return rows.map((row) => ({
+    request: JSON.parse(String(row.payload)) as StylingRequest,
+    createdAt: Number(row.created_at),
+  }));
+}
