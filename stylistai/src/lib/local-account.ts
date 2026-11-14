@@ -17,7 +17,7 @@ export function localAccountEnabled() {
 function accountDatabase() {
   if (!localAccountEnabled()) throw new Error("Local accounts are disabled.");
   if (!database) {
-    const connection = new DatabaseSync(".stylist-local.sqlite");
+    const connection = new DatabaseSync(process.env.STYLIST_LOCAL_DB_FILE || ".stylist-local.sqlite");
     connection.exec(`
       CREATE TABLE IF NOT EXISTS local_session (
         token_hash TEXT PRIMARY KEY,
