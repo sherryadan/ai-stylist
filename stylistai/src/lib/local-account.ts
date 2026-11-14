@@ -34,6 +34,12 @@ function accountDatabase() {
         clothing_size TEXT NOT NULL,
         shoe_size TEXT NOT NULL
       );
+      CREATE TABLE IF NOT EXISTS local_measurement (
+        profile_id INTEGER PRIMARY KEY REFERENCES local_profile(id) ON DELETE CASCADE,
+        height_cm REAL CHECK (height_cm BETWEEN 50 AND 260),
+        weight_kg REAL CHECK (weight_kg BETWEEN 20 AND 400),
+        preferred_fit TEXT NOT NULL CHECK (preferred_fit IN ('', 'Fitted', 'Regular', 'Relaxed'))
+      );
       CREATE TABLE IF NOT EXISTS styling_request (
         id TEXT PRIMARY KEY,
         payload TEXT NOT NULL,
@@ -128,24 +134,45 @@ export type LocalProfile = {
   gender: string;
   clothing_size: string;
   shoe_size: string;
+  height_cm: number | null;
+  weight_kg: number | null;
+  preferred_fit: string;
 };
 
 export async function readLocalProfile() {
   if (!(await currentLocalAccount())) return undefined;
-  const profile = accountDatabase().prepare("SELECT name, birth_date, preference, timezone, city, gender, clothing_size, shoe_size FROM local_profile WHERE id = 1")
+  const profile = accountDatabase().prepare(`
+    SELECT name, birth_date, preference, timezone, city, gender, clothing_size, shoe_size,
+           height_cm, weight_kg, coalesce(preferred_fit, '') AS preferred_fit
+    FROM local_profile LEFT JOIN local_measurement ON local_measurement.profile_id = local_profile.id
+    WHERE local_profile.id = 1
+  `)
     .get() as LocalProfile | undefined;
   return profile && { ...profile };
 }
 
 export async function writeLocalProfile(profile: LocalProfile) {
   if (!(await currentLocalAccount())) return false;
-  accountDatabase().prepare(`
-    INSERT INTO local_profile VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET name = excluded.name, birth_date = excluded.birth_date,
-      preference = excluded.preference, timezone = excluded.timezone, city = excluded.city,
-      gender = excluded.gender, clothing_size = excluded.clothing_size, shoe_size = excluded.shoe_size
-  `).run(profile.name, profile.birth_date, profile.preference, profile.timezone,
-    profile.city, profile.gender, profile.clothing_size, profile.shoe_size);
+  const db = accountDatabase();
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    db.prepare(`
+      INSERT INTO local_profile VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(id) DO UPDATE SET name = excluded.name, birth_date = excluded.birth_date,
+        preference = excluded.preference, timezone = excluded.timezone, city = excluded.city,
+        gender = excluded.gender, clothing_size = excluded.clothing_size, shoe_size = excluded.shoe_size
+    `).run(profile.name, profile.birth_date, profile.preference, profile.timezone,
+      profile.city, profile.gender, profile.clothing_size, profile.shoe_size);
+    db.prepare(`
+      INSERT INTO local_measurement (profile_id, height_cm, weight_kg, preferred_fit) VALUES (1, ?, ?, ?)
+      ON CONFLICT(profile_id) DO UPDATE SET height_cm = excluded.height_cm,
+        weight_kg = excluded.weight_kg, preferred_fit = excluded.preferred_fit
+    `).run(profile.height_cm, profile.weight_kg, profile.preferred_fit);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
   return true;
 }
 

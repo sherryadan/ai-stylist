@@ -27,6 +27,11 @@ export function ProfileForm({ profile }: { profile?: LocalProfile }) {
           <label>Gender<input className={field} name="gender" maxLength={80} defaultValue={profile?.gender} /></label>
           <label>Clothing size<input className={field} name="clothing_size" maxLength={32} placeholder="e.g. M" defaultValue={profile?.clothing_size} /></label>
           <label>Shoe size<input className={field} name="shoe_size" maxLength={32} placeholder="e.g. EU 42" defaultValue={profile?.shoe_size} /></label>
+          <label>Height (cm)<input className={field} name="height_cm" type="number" min={50} max={260} step={0.1} defaultValue={profile?.height_cm ?? ""} /></label>
+          <label>Weight (kg)<input className={field} name="weight_kg" type="number" min={20} max={400} step={0.1} defaultValue={profile?.weight_kg ?? ""} /></label>
+          <label>Preferred fit<select className={field} name="preferred_fit" defaultValue={profile?.preferred_fit ?? ""}>
+            <option value="">No preference</option><option>Fitted</option><option>Regular</option><option>Relaxed</option>
+          </select></label>
         </div>
       </details>
       {error && <p role="alert" className="text-red-900 sm:col-span-2">{error}</p>}
