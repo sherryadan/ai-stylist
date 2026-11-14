@@ -33,11 +33,11 @@ const profileSchema = z.object({
   }),
 });
 
-export async function saveProfile(_: string, form: FormData) {
+export async function saveProfile(_: string, form: FormData): Promise<string> {
   const parsed = profileSchema.safeParse(Object.fromEntries(form));
   if (!parsed.success) return "Check the required fields and the length of the optional entries.";
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: parsed.data.timezone }).format(new Date());
   if (parsed.data.birth_date > today) return "Enter a birth date that is today or earlier.";
   if (!(await writeLocalProfile(parsed.data))) return "Your session expired. Sign in again to save.";
-  redirect("/profile?saved=1");
+  return redirect("/profile?saved=1");
 }
