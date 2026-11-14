@@ -179,6 +179,23 @@ export async function listLocalStylingRequests(before?: string) {
   }));
 }
 
+export async function localDashboardSummary() {
+  if (!(await currentLocalAccount())) return;
+  const db = accountDatabase();
+  const counts = db.prepare(`
+    SELECT (SELECT count(*) FROM styling_request) AS requests,
+           (SELECT count(*) FROM saved_look) AS saved,
+           (SELECT count(*) FROM look_feedback) AS feedback
+  `).get();
+  const recent = db.prepare("SELECT payload FROM styling_request ORDER BY created_at DESC, id DESC LIMIT 5").all();
+  return {
+    requests: Number(counts?.requests ?? 0),
+    saved: Number(counts?.saved ?? 0),
+    feedback: Number(counts?.feedback ?? 0),
+    recent: recent.map((row) => JSON.parse(String(row.payload)) as StylingRequest),
+  };
+}
+
 export async function saveLocalLook(requestId: string, look: MatchedLook) {
   if (!(await currentLocalAccount())) return false;
   accountDatabase().prepare(`
