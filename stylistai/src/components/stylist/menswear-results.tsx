@@ -3,18 +3,20 @@ import Link from "next/link";
 import { currentSampleCatalog } from "@/lib/sample-catalog";
 import { matchMenswear } from "@/services/menswear-matching";
 import { MenswearLookCard } from "./menswear-look-card";
-import { readLocalLookFeedback } from "@/lib/local-account";
+import { readBlueprint, readLocalLookFeedback } from "@/lib/local-account";
+import { templateBlueprint } from "@/services/styling-blueprint";
 
 const money = (subtotal: number) => `PKR ${subtotal.toLocaleString("en-PK")}`;
 
 export async function MenswearResults({ request }: { request: StylingRequest }) {
-  const { looks, eligible, options } = matchMenswear(request, currentSampleCatalog());
-  const feedback = await readLocalLookFeedback(request.id);
+  const [blueprint, feedback] = await Promise.all([readBlueprint(request.id), readLocalLookFeedback(request.id)]);
+  const { looks, eligible, options } = matchMenswear(request, currentSampleCatalog(), blueprint ?? templateBlueprint(request));
 
   return (
     <section aria-labelledby="sample-looks" className="mt-10">
       <h2 id="sample-looks" className="font-serif text-4xl">Your sample looks</h2>
       <p className="mt-3 text-stone-700">Demonstration items only. Item subtotals exclude shipping and taxes. Size listings do not guarantee fit.</p>
+      <p className="mt-2 text-sm text-stone-700">{blueprint ? "Ranked with a local styling blueprint." : "Ranked with a curated styling template."}</p>
       <Link href="/saved-outfits" className="mt-3 inline-block underline underline-offset-4">View saved looks</Link>
       {looks.length === 0 ? (
         <div className="mt-6 rounded-2xl border border-stone-300 bg-[#fffbf5] p-5">

@@ -1,5 +1,6 @@
 import type { CatalogItem } from "@/data/sample-menswear";
 import type { StylingRequest } from "@/lib/styling-request";
+import type { StylingBlueprint } from "./styling-blueprint";
 
 export interface MatchedLook {
   id: string;
@@ -11,9 +12,10 @@ const normalize = (value: string) => value.trim().toLowerCase();
 const exclusions = (value: string) => new Set(value.split(",").map(normalize).filter(Boolean));
 const neutralColors = new Set(["ivory", "cream", "charcoal", "tan", "black", "white", "sand", "navy", "brown"]);
 
-export function matchMenswear(request: StylingRequest, catalog: readonly CatalogItem[]) {
+export function matchMenswear(request: StylingRequest, catalog: readonly CatalogItem[], blueprint?: StylingBlueprint) {
   const colors = exclusions(request.avoidColors);
   const brands = exclusions(request.avoidBrands);
+  const palette = new Set<string>(blueprint?.preferredColors);
   const eligible = catalog.filter((item) => {
     const size = normalize(item.slot === "footwear" ? request.shoeSize : request.clothingSize);
     return item.currency === "PKR" &&
@@ -42,9 +44,10 @@ export function matchMenswear(request: StylingRequest, catalog: readonly Catalog
       const categoryCoherence = items.every((item) => item.category === shoe.category) ? 1 : 0;
       const formalOccasion = ["wedding", "business-meeting"].includes(request.occasion);
       const occasionMatches = items.filter((item) => item.dressCodes.includes(formalOccasion ? "Formal" : "Casual")).length;
+      const paletteMatches = items.filter((item) => palette.has(normalize(item.color))).length;
       looks.push({
         id: items.map(({ id }) => id).join("+"), items, subtotal,
-        score: (compatibleColors + occasionMatches) / items.length + categoryCoherence * 0.25,
+        score: (compatibleColors + occasionMatches + paletteMatches * 0.5) / items.length + categoryCoherence * 0.25,
       });
     }
   }

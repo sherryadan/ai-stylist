@@ -23,6 +23,22 @@ Sign in locally and open `/catalog-admin` to see the template. Imports update by
 SKU. Use an empty stock size list to remove an imported item from matching.
 Imported items are displayed as samples and have no external purchase URLs.
 
+### Styling blueprint adapter
+
+Curated templates rank outfits by default. To try a model service you run on
+your own computer, set `STYLIST_BLUEPRINT_PORT` to its loopback HTTP port in
+development. The service must accept `POST /blueprint` with JSON fields
+`occasion`, `category`, and `dressCode`. Return an object such as
+`{"preferredColors":["ivory","navy"]}` with up to four supported palette
+colors. The supported values are ivory, olive, charcoal, cream, tan, black,
+blue, white, sand, navy, and brown.
+
+The adapter makes at most one attempt per stored request, times out after two
+seconds, and reads up to 2 KiB. Invalid or unavailable responses fall back to
+the curated template. The blueprint only affects ranking and has no authority
+over catalog items, prices, budget, size or exclusions. The prototype does
+not provide or activate a model service.
+
 First, run the development server:
 
 ```bash
