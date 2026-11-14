@@ -8,6 +8,8 @@ export default function Footer() {
         <p className="text-sm text-[#ddd0bf]">A menswear styling prototype for Pakistan.</p>
         <nav aria-label="Footer navigation" className="flex flex-wrap gap-5 text-sm">
           <Link href="/sample-catalog" className="underline-offset-4 hover:underline">Sample catalog</Link>
+          <Link href="/how-it-works" className="underline-offset-4 hover:underline">How it works</Link>
+          <Link href="/partner-brands" className="underline-offset-4 hover:underline">Retailers</Link>
           <Link href="/profile" className="underline-offset-4 hover:underline">Style profile</Link>
         </nav>
       </div>
