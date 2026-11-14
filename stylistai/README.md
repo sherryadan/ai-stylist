@@ -2,6 +2,21 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
+### Local style profile
+
+Use Node.js 24 or later and install dependencies with `npm ci`. Start the local
+prototype from PowerShell:
+
+```powershell
+$env:STYLIST_LOCAL_ACCOUNT = "1"
+npm run dev -- --hostname 127.0.0.1
+```
+
+Open `http://127.0.0.1:3000/profile` and select **Open local test account**.
+The shared test profile and session records are stored in the ignored
+`.stylist-local.sqlite` file. Use sample information. This sign-in path requires
+the opt-in environment setting and is available only in development mode.
+
 First, run the development server:
 
 ```bash
