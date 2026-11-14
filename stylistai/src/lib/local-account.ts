@@ -296,3 +296,27 @@ export function listImportedSamples(): CatalogItem[] {
   return accountDatabase().prepare("SELECT payload FROM local_catalog_item ORDER BY id").all()
     .map((row) => JSON.parse(String(row.payload)) as CatalogItem);
 }
+
+export async function localCatalogOverview(token: string) {
+  if (!(await canAdministerLocalCatalog(token))) return;
+  const db = accountDatabase();
+  const imported = listImportedSamples();
+  const counts = db.prepare(`
+    SELECT (SELECT count(*) FROM styling_request) AS requests,
+           (SELECT count(*) FROM look_feedback WHERE rating = 'like') AS likes,
+           (SELECT count(*) FROM look_feedback WHERE rating = 'dislike') AS dislikes,
+           (SELECT count(*) FROM request_blueprint) AS blueprint_attempts,
+           (SELECT count(*) FROM request_blueprint WHERE payload IS NOT NULL) AS blueprint_successes
+  `).get();
+  const imports = db.prepare("SELECT id, row_count, created_at FROM local_catalog_import ORDER BY created_at DESC, id DESC LIMIT 10").all();
+  return {
+    imported: imported.length,
+    available: imported.filter((item) => item.variants.some(({ inStock }) => inStock)).length,
+    requests: Number(counts?.requests ?? 0),
+    likes: Number(counts?.likes ?? 0),
+    dislikes: Number(counts?.dislikes ?? 0),
+    attempts: Number(counts?.blueprint_attempts ?? 0),
+    successes: Number(counts?.blueprint_successes ?? 0),
+    imports: imports.map((row) => ({ id: Number(row.id), rows: Number(row.row_count), createdAt: Number(row.created_at) })),
+  };
+}
