@@ -33,6 +33,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             {saved === "1" && <p role="status" className="mb-5 text-green-900">Profile saved.</p>}
             <ProfileForm profile={profile} />
             {profile && <div className="mt-6 flex flex-wrap gap-4">
+              <Link className="underline underline-offset-4" href="/dashboard">Styling desk</Link>
               <Link className="underline underline-offset-4" href="/styling-requests">Plan a look</Link>
               <Link className="underline underline-offset-4" href="/styling-history">Styling history</Link>
             </div>}
