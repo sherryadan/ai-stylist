@@ -88,6 +88,21 @@ export async function endLocalSession() {
   jar.delete(cookieName);
 }
 
+export async function deleteLocalAccount() {
+  if (!(await currentLocalAccount())) return false;
+  const db = accountDatabase();
+  db.exec("BEGIN IMMEDIATE");
+  try {
+    db.exec("DELETE FROM styling_request; DELETE FROM local_profile; DELETE FROM local_session;");
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+  (await cookies()).delete(cookieName);
+  return true;
+}
+
 export type LocalProfile = {
   name: string;
   birth_date: string;

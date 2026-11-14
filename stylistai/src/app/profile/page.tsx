@@ -1,5 +1,5 @@
 import { currentLocalAccount, localAccountEnabled, readLocalProfile } from "@/lib/local-account";
-import { signIn, signOut } from "./actions";
+import { deleteAccount, signIn, signOut } from "./actions";
 import { ProfileForm } from "./profile-form";
 import Link from "next/link";
 
@@ -15,10 +15,10 @@ function ageDisplay(birthDate: string, timezone: string) {
   return `${years} ${years === 1 ? "year" : "years"}, ${elapsed} ${elapsed === 1 ? "day" : "days"}`;
 }
 
-export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ saved?: string }> }) {
+export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string }> }) {
   const signedIn = await currentLocalAccount();
   const profile = signedIn ? await readLocalProfile() : undefined;
-  const { saved } = await searchParams;
+  const { saved, deleted } = await searchParams;
 
   return (
     <section className="bg-[#f4ede2] px-5 py-16 text-stone-950 sm:py-24">
@@ -39,8 +39,17 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             <form action={signOut} className="mt-6">
               <button className="underline underline-offset-4">Sign out</button>
             </form>
+            <details className="mt-6 border-t border-stone-300 pt-4">
+              <summary className="cursor-pointer font-medium text-red-900">Delete local account data</summary>
+              <form action={deleteAccount} className="mt-4 space-y-4">
+                <p>This permanently removes the local profile, requests, saved outfits and ratings, and signs out all local sessions.</p>
+                <label className="flex items-center gap-2"><input type="checkbox" name="confirm" value="yes" required /> Delete my local test data</label>
+                <button className="rounded-full border border-red-900 px-4 py-2 text-red-900 hover:bg-red-50">Delete data</button>
+              </form>
+            </details>
           </> : localAccountEnabled() ? (
             <form action={signIn}>
+              {deleted === "1" && <p className="mb-5 text-green-900" role="status">Local account data deleted.</p>}
               <p className="mb-5 text-stone-700">Use the shared local test account with sample information.</p>
               <button className="rounded-full bg-stone-950 px-6 py-3 text-white hover:bg-orange-950">Open local test account</button>
             </form>
