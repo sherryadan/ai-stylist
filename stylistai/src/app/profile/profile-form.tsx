@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import type { LocalProfile } from "@/lib/local-account";
 import { saveProfile } from "./actions";
 
@@ -9,11 +8,9 @@ const field = "mt-2 w-full rounded-lg border border-stone-400 bg-white px-4 py-3
 
 export function ProfileForm({ profile }: { profile?: LocalProfile }) {
   const [error, action, pending] = useActionState(saveProfile, "");
-  const reducedMotion = useReducedMotion();
 
   return (
-    <motion.form action={action} className="grid gap-5 sm:grid-cols-2"
-      initial={reducedMotion ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+    <form action={action} className="editorial-enter grid gap-5 sm:grid-cols-2">
       <label>Preferred name<input className={field} name="name" autoComplete="given-name" required maxLength={80} defaultValue={profile?.name} /></label>
       <label>Date of birth<input className={field} type="date" name="birth_date" required defaultValue={profile?.birth_date} /></label>
       <label>Clothing preference<select className={field} name="preference" defaultValue={profile?.preference ?? "Both"}>
@@ -36,6 +33,6 @@ export function ProfileForm({ profile }: { profile?: LocalProfile }) {
       <button disabled={pending} className="rounded-full bg-stone-950 px-6 py-3 text-white hover:bg-orange-950 disabled:opacity-60 sm:col-span-2 sm:justify-self-start">
         {pending ? "Saving…" : "Save profile"}
       </button>
-    </motion.form>
+    </form>
   );
 }

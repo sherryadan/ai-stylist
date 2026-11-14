@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useState, type FormEvent } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import { occasions } from "@/data/occasions";
 import type { LocalProfile } from "@/lib/local-account";
 import { stylingRequestSchema, type StylingRequest } from "@/lib/styling-request";
@@ -10,11 +9,10 @@ import { submitRequest } from "./actions";
 const field = "mt-2 w-full rounded-lg border border-stone-400 bg-white px-3 py-2 text-stone-950";
 const button = "rounded-full bg-stone-950 px-5 py-3 text-white hover:bg-orange-950 disabled:opacity-60";
 
-export function RequestForm({ id, profile }: { id: string; profile: LocalProfile }) {
+export function RequestForm({ id, profile, initialCategory }: { id: string; profile: LocalProfile; initialCategory?: StylingRequest["category"] }) {
   const [request, setRequest] = useState<StylingRequest>();
   const [error, setError] = useState("");
   const [result, action, pending] = useActionState(submitRequest, "");
-  const reduced = useReducedMotion();
   function review(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const parsed = stylingRequestSchema.safeParse(Object.fromEntries(new FormData(event.currentTarget)));
@@ -27,8 +25,7 @@ export function RequestForm({ id, profile }: { id: string; profile: LocalProfile
   }
 
   return (
-    <motion.div className="mt-8 rounded-3xl border border-stone-300 bg-[#fffbf5] p-6 sm:p-9"
-      initial={reduced ? false : { opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+    <div className="editorial-enter mt-8 rounded-3xl border border-stone-300 bg-[#fffbf5] p-6 sm:p-9">
       <form hidden={Boolean(request)} onSubmit={review}>
         <input type="hidden" name="id" value={id} />
         <div className="grid gap-5 sm:grid-cols-2">
@@ -36,7 +33,7 @@ export function RequestForm({ id, profile }: { id: string; profile: LocalProfile
             <option value="" disabled>Select an occasion</option>
             {occasions.map((occasion) => <option key={occasion.id} value={occasion.id}>{occasion.name}</option>)}
           </select></label>
-          <label>Menswear category<select name="category" className={field} defaultValue={profile.preference === "Both" ? "Mixed" : profile.preference}>
+          <label>Menswear category<select name="category" className={field} defaultValue={initialCategory ?? (profile.preference === "Both" ? "Mixed" : profile.preference)}>
             <option>Eastern</option><option>Western</option><option>Mixed</option>
           </select></label>
           <label>Budget (PKR)<input name="budget" className={field} type="number" min={1} max={99999999} step={1} required /></label>
@@ -75,6 +72,6 @@ export function RequestForm({ id, profile }: { id: string; profile: LocalProfile
           </div>
         </form>
       )}
-    </motion.div>
+    </div>
   );
 }

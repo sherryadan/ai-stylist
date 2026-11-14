@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StylistAI - Your AI Personal Fashion Stylist",
+  title: "StylistAI · Pakistani Menswear Styling",
   description:
-    "Find the perfect outfit for any occasion based on your budget, style, and preferences. AI-powered fashion recommendations from top brands.",
+    "Plan eastern, western, and mixed menswear looks for your occasion, preferences, and PKR budget.",
   keywords: [
     "AI fashion stylist",
     "outfit recommendations",
