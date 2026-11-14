@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { cookies } from "next/headers";
+import type { StylingRequest } from "./styling-request";
 
 const cookieName = "stylist-local-session";
 const sessionSeconds = 8 * 60 * 60;
@@ -29,6 +30,11 @@ function accountDatabase() {
         gender TEXT NOT NULL,
         clothing_size TEXT NOT NULL,
         shoe_size TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS styling_request (
+        id TEXT PRIMARY KEY,
+        payload TEXT NOT NULL,
+        created_at INTEGER NOT NULL
       );
     `);
     database = connection;
@@ -96,4 +102,25 @@ export async function writeLocalProfile(profile: LocalProfile) {
   `).run(profile.name, profile.birth_date, profile.preference, profile.timezone,
     profile.city, profile.gender, profile.clothing_size, profile.shoe_size);
   return true;
+}
+
+export async function saveLocalStylingRequest(request: StylingRequest) {
+  if (!(await currentLocalAccount())) return "signed-out";
+  const db = accountDatabase();
+  if (db.prepare("SELECT 1 FROM styling_request WHERE id = ?").get(request.id)) return "saved";
+  const now = Date.now();
+  const result = db.prepare(`
+    INSERT INTO styling_request (id, payload, created_at)
+    SELECT ?, ?, ?
+    WHERE (SELECT count(*) FROM styling_request WHERE created_at > ?) < 30
+    ON CONFLICT(id) DO NOTHING
+  `).run(request.id, JSON.stringify(request), now, now - 86_400_000);
+  return result.changes ? "saved" : "quota";
+}
+
+export async function readLocalStylingRequest(id: string): Promise<StylingRequest | undefined> {
+  if (!(await currentLocalAccount())) return;
+  const stored = accountDatabase().prepare("SELECT payload FROM styling_request WHERE id = ?")
+    .get(id) as { payload: string } | undefined;
+  return stored && JSON.parse(stored.payload);
 }
