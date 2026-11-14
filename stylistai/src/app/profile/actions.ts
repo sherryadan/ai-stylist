@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { endLocalSession, localAccountEnabled, startLocalSession, writeLocalProfile } from "@/lib/local-account";
+import { deleteLocalAccount, endLocalSession, localAccountEnabled, startLocalSession, writeLocalProfile } from "@/lib/local-account";
 import { z } from "zod";
 
 export async function signIn() {
@@ -12,6 +12,12 @@ export async function signIn() {
 
 export async function signOut() {
   await endLocalSession();
+  redirect("/profile");
+}
+
+export async function deleteAccount(form: FormData) {
+  if (form.get("confirm") !== "yes") return;
+  if (await deleteLocalAccount()) redirect("/profile?deleted=1");
   redirect("/profile");
 }
 
