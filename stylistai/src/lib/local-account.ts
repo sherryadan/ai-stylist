@@ -44,6 +44,12 @@ function accountDatabase() {
         saved_at INTEGER NOT NULL,
         PRIMARY KEY (request_id, look_id)
       );
+      CREATE TABLE IF NOT EXISTS look_feedback (
+        request_id TEXT NOT NULL REFERENCES styling_request(id) ON DELETE CASCADE,
+        look_id TEXT NOT NULL,
+        rating TEXT NOT NULL CHECK (rating IN ('like', 'dislike')),
+        PRIMARY KEY (request_id, look_id)
+      );
     `);
     database = connection;
   }
@@ -167,4 +173,19 @@ export async function removeLocalLook(requestId: string, lookId: string) {
   if (!(await currentLocalAccount())) return false;
   accountDatabase().prepare("DELETE FROM saved_look WHERE request_id = ? AND look_id = ?").run(requestId, lookId);
   return true;
+}
+
+export async function writeLocalLookFeedback(requestId: string, lookId: string, rating: "like" | "dislike") {
+  if (!(await currentLocalAccount())) return false;
+  accountDatabase().prepare(`
+    INSERT INTO look_feedback (request_id, look_id, rating) VALUES (?, ?, ?)
+    ON CONFLICT(request_id, look_id) DO UPDATE SET rating = excluded.rating
+  `).run(requestId, lookId, rating);
+  return true;
+}
+
+export async function readLocalLookFeedback(requestId: string): Promise<Record<string, string>> {
+  if (!(await currentLocalAccount())) return {};
+  const rows = accountDatabase().prepare("SELECT look_id, rating FROM look_feedback WHERE request_id = ?").all(requestId);
+  return Object.fromEntries(rows.map((row) => [String(row.look_id), String(row.rating)]));
 }

@@ -3,11 +3,13 @@ import Link from "next/link";
 import { sampleMenswear } from "@/data/sample-menswear";
 import { matchMenswear } from "@/services/menswear-matching";
 import { MenswearLookCard } from "./menswear-look-card";
+import { readLocalLookFeedback } from "@/lib/local-account";
 
 const money = (subtotal: number) => `PKR ${subtotal.toLocaleString("en-PK")}`;
 
-export function MenswearResults({ request }: { request: StylingRequest }) {
+export async function MenswearResults({ request }: { request: StylingRequest }) {
   const { looks, eligible, options } = matchMenswear(request, sampleMenswear);
+  const feedback = await readLocalLookFeedback(request.id);
 
   return (
     <section aria-labelledby="sample-looks" className="mt-10">
@@ -29,7 +31,7 @@ export function MenswearResults({ request }: { request: StylingRequest }) {
         <>
           {looks.length < 3 && <p className="mt-4">The sample catalog has {looks.length} distinct garment {looks.length === 1 ? "combination" : "combinations"} for this request.</p>}
           <ul className="mt-6 grid gap-5 lg:grid-cols-3">
-            {looks.map((look) => <MenswearLookCard key={look.id} initial={look} options={options} dressCode={request.dressCode} requestId={request.id} />)}
+            {looks.map((look) => <MenswearLookCard key={look.id} initial={look} options={options} dressCode={request.dressCode} requestId={request.id} feedback={feedback} />)}
           </ul>
         </>
       )}
