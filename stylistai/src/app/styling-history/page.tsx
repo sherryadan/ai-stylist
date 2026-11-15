@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { currentLocalAccount, listLocalStylingRequests, readLocalProfile } from "@/lib/local-account";
+import { currentShopper, listLocalStylingRequests, readLocalProfile } from "@/lib/local-account";
 import { occasions } from "@/data/occasions";
 
 export default async function StylingHistoryPage({ searchParams }: { searchParams: Promise<{ before?: string }> }) {
-  if (!(await currentLocalAccount())) redirect("/profile");
+  if (!(await currentShopper())) redirect("/profile");
   const { before } = await searchParams;
   const entries = await listLocalStylingRequests(typeof before === "string" ? before : undefined);
   const profile = await readLocalProfile();

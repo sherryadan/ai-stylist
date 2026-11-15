@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { deleteLocalAccount, endLocalSession, localAccountEnabled, startLocalSession, writeLocalProfile } from "@/lib/local-account";
 import { z } from "zod";
+import { googleAccountId, googleDatabase, revokeGoogleSession } from "@/lib/google-account";
 
 export async function signIn() {
   if (!localAccountEnabled()) redirect("/profile");
@@ -11,12 +12,20 @@ export async function signIn() {
 }
 
 export async function signOut() {
+  await revokeGoogleSession();
   await endLocalSession();
   redirect("/profile");
 }
 
 export async function deleteAccount(form: FormData) {
   if (form.get("confirm") !== "yes") return;
+  const owner = await googleAccountId();
+  if (owner) {
+    googleDatabase().prepare("DELETE FROM demo_account WHERE id = ?").run(owner);
+    await revokeGoogleSession();
+    await endLocalSession();
+    redirect("/profile?deleted=google");
+  }
   if (await deleteLocalAccount()) redirect("/profile?deleted=1");
   redirect("/profile");
 }

@@ -27,6 +27,7 @@
 # debug
 npm-debug.log*
 /.stylist-local.sqlite*
+/.stylist-hosted.sqlite*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*

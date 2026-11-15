@@ -2,6 +2,15 @@ import { currentLocalAccount, localAccountEnabled, readLocalProfile } from "@/li
 import { deleteAccount, signIn, signOut } from "./actions";
 import { ProfileForm } from "./profile-form";
 import Link from "next/link";
+import { googleAccountId } from "@/lib/google-account";
+import { googleConfig } from "@/lib/google-identity";
+
+const authMessages: Record<string, string> = {
+  restart: "This sign-in attempt expired. Start again.",
+  cancelled: "Google sign-in was cancelled.",
+  invite: "This Google account isn’t invited to the demo.",
+  failed: "Google sign-in could not be completed. Try again.",
+};
 
 function ageDisplay(birthDate: string, timezone: string) {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(new Date());
@@ -15,10 +24,11 @@ function ageDisplay(birthDate: string, timezone: string) {
   return `${years} ${years === 1 ? "year" : "years"}, ${elapsed} ${elapsed === 1 ? "day" : "days"}`;
 }
 
-export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string }> }) {
-  const signedIn = await currentLocalAccount();
+export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string; auth?: string }> }) {
+  const googleAccount = await googleAccountId();
+  const signedIn = Boolean(googleAccount) || await currentLocalAccount();
   const profile = signedIn ? await readLocalProfile() : undefined;
-  const { saved, deleted } = await searchParams;
+  const { saved, deleted, auth } = await searchParams;
 
   return (
     <section className="bg-[#f4ede2] px-5 py-16 text-stone-950 sm:py-24">
@@ -29,6 +39,8 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           {profile && <p className="mt-5 text-stone-700">Age · {ageDisplay(profile.birth_date, profile.timezone)}</p>}
         </div>
         <div className="rounded-3xl border border-stone-300 bg-[#fffbf5] p-6 sm:p-9">
+          {auth && Object.hasOwn(authMessages, auth) && <p role="alert" className="mb-5 text-red-900">{authMessages[auth]}</p>}
+          {deleted === "google" && <p role="status" className="mb-5 text-green-900">StylistAI account deleted.</p>}
           {signedIn ? <>
             {saved === "1" && <p role="status" className="mb-5 text-green-900">Profile saved.</p>}
             <ProfileForm profile={profile} />
@@ -41,20 +53,26 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
               <button className="underline underline-offset-4">Sign out</button>
             </form>
             <details className="mt-6 border-t border-stone-300 pt-4">
-              <summary className="cursor-pointer font-medium text-red-900">Delete local account data</summary>
+              <summary className="cursor-pointer font-medium text-red-900">{googleAccount ? "Delete StylistAI account" : "Delete local account data"}</summary>
               <form action={deleteAccount} className="mt-4 space-y-4">
-                <p>This permanently removes the local profile, requests, saved outfits and ratings, and signs out all local sessions.</p>
-                <label className="flex items-center gap-2"><input type="checkbox" name="confirm" value="yes" required /> Delete my local test data</label>
+                <p>This permanently removes your StylistAI profile, requests, saved outfits and ratings, and signs out all sessions for this account.</p>
+                <label className="flex items-center gap-2"><input type="checkbox" name="confirm" value="yes" required /> {googleAccount ? "Delete my StylistAI account" : "Delete my local test data"}</label>
                 <button className="rounded-full border border-red-900 px-4 py-2 text-red-900 hover:bg-red-50">Delete data</button>
               </form>
             </details>
-          </> : localAccountEnabled() ? (
+          </> : <>
+            {googleConfig() && <div className="mb-5">
+              <p className="mb-4 text-stone-700">Use your invited Google account to sign in or create your StylistAI account.</p>
+              <Link prefetch={false} href="/auth/google/start" className="inline-block rounded-full bg-stone-950 px-6 py-3 text-white hover:bg-orange-950">Continue with Google</Link>
+            </div>}
+            {localAccountEnabled() ? (
             <form action={signIn}>
               {deleted === "1" && <p className="mb-5 text-green-900" role="status">Local account data deleted.</p>}
               <p className="mb-5 text-stone-700">Use the shared local test account with sample information.</p>
               <button className="rounded-full bg-stone-950 px-6 py-3 text-white hover:bg-orange-950">Open local test account</button>
             </form>
-          ) : <p>Account sign-in is currently unavailable.</p>}
+            ) : !googleConfig() && <p>Account sign-in is currently unavailable.</p>}
+          </>}
         </div>
       </div>
     </section>
