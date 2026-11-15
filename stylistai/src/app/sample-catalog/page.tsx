@@ -11,7 +11,7 @@ export default async function SampleCatalogPage({ searchParams }: { searchParams
   return (
     <section className="bg-[#f4ede2] px-5 py-16 text-stone-950">
       <div className="mx-auto max-w-6xl">
-        <h1 className="font-serif text-5xl tracking-tight sm:text-7xl">The sample edit</h1>
+        <h1 className="font-serif text-4xl tracking-tight sm:text-7xl">The sample edit</h1>
         <p className="mt-4 max-w-lg text-stone-700">Explore the demonstration menswear used by the local prototype. Prices and sizes are sample values. Shopping links are unavailable.</p>
         <Link href="/styling-requests" className="mt-5 inline-block underline underline-offset-4">Plan a look</Link>
         <form className="mt-8 flex flex-wrap items-end gap-4" action="/sample-catalog">
@@ -23,8 +23,8 @@ export default async function SampleCatalogPage({ searchParams }: { searchParams
               <option value="">All</option><option>Eastern</option><option>Western</option>
             </select>
           </label>
-          <button className="rounded-full bg-stone-950 px-4 py-2 text-sm text-white">Apply filters</button>
-          {(query || category) && <Link href="/sample-catalog" className="px-1 py-2 text-sm underline underline-offset-4">Clear filters</Link>}
+          <button className="min-h-11 rounded-full bg-stone-950 px-4 py-2 text-sm text-white">Apply filters</button>
+          {(query || category) && <Link href="/sample-catalog" className="inline-flex min-h-11 items-center px-1 text-sm underline underline-offset-4">Clear filters</Link>}
         </form>
         {items.length === 0 && <p className="mt-6">No sample items matched these filters.</p>}
         <ul className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

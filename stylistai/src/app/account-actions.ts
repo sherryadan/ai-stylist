@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { issuePasswordSession } from "@/lib/password-account";
 import { supabaseClient, supabaseConfig } from "@/lib/supabase-auth";
+import { returnDestination } from "@/lib/return-destination";
 
 const credentials = z.object({
   email: z.email().max(254).trim().toLowerCase(),
@@ -57,7 +58,7 @@ async function authenticate(form: FormData, registration: boolean): Promise<stri
   } catch {
     return "Sign-in is temporarily unavailable. Try again.";
   }
-  return redirect("/profile");
+  return redirect(returnDestination(form.get("next")) ?? "/profile");
 }
 
 export async function passwordSignIn(_: string, form: FormData) {

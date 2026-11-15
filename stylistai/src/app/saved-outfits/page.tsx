@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { profileHandoff } from "@/lib/return-destination";
 import { currentShopper, listLocalLooks } from "@/lib/local-account";
 import { removeLook } from "./actions";
 
 export default async function SavedOutfitsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  if (!(await currentShopper())) redirect("/profile");
+  if (!(await currentShopper())) redirect(profileHandoff("/profile", "/saved-outfits"));
   const { page } = await searchParams;
   const index = typeof page === "string" && /^[1-9][0-9]{0,5}$/.test(page) ? Number(page) : 1;
   const outfits = await listLocalLooks((index - 1) * 20);
@@ -12,7 +13,7 @@ export default async function SavedOutfitsPage({ searchParams }: { searchParams:
   return (
     <section className="bg-[#f4ede2] px-5 py-16 text-stone-950">
       <div className="mx-auto max-w-5xl">
-        <h1 className="font-serif text-5xl tracking-tight sm:text-7xl">Your saved looks</h1>
+        <h1 className="font-serif text-4xl tracking-tight sm:text-7xl">Your saved looks</h1>
         <Link className="mt-5 inline-block underline underline-offset-4" href="/styling-history">Browse styling history</Link>
         {outfits.length === 0 ? <p className="mt-8">There are no saved looks on this page.</p> : (
           <ul className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -28,7 +29,7 @@ export default async function SavedOutfitsPage({ searchParams }: { searchParams:
                   <form action={removeLook}>
                     <input type="hidden" name="requestId" value={requestId} />
                     <input type="hidden" name="lookId" value={look.id} />
-                    <button className="text-red-900 underline underline-offset-4">Remove look</button>
+                    <button className="min-h-11 text-red-900 underline underline-offset-4">Remove look</button>
                   </form>
                 </div>
               </li>

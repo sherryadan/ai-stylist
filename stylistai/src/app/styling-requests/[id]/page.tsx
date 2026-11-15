@@ -4,16 +4,18 @@ import { currentShopper, readLocalStylingRequest } from "@/lib/local-account";
 import { occasions } from "@/data/occasions";
 import { MenswearResults } from "@/components/stylist/menswear-results";
 import { stylingRequestDetails } from "@/lib/styling-request";
+import { profileHandoff, returnDestination } from "@/lib/return-destination";
 
 export default async function RequestPage({ params }: { params: Promise<{ id: string }> }) {
-  if (!(await currentShopper())) redirect("/profile");
-  const request = await readLocalStylingRequest((await params).id);
+  const { id } = await params;
+  if (!(await currentShopper())) redirect(profileHandoff("/profile", returnDestination(`/styling-requests/${id}`)));
+  const request = await readLocalStylingRequest(id);
   if (!request) notFound();
   const details = stylingRequestDetails(request);
   return (
     <section className="bg-[#f4ede2] px-5 py-16 text-stone-950">
       <div className="mx-auto max-w-6xl">
-        <h1 className="font-serif text-5xl">Styling request saved</h1>
+        <h1 className="font-serif text-4xl sm:text-5xl">Styling request saved</h1>
         <p className="mt-5">{request.category} menswear for {occasions.find(({ id }) => id === request.occasion)?.name}.</p>
         <p className="mt-2">Item budget PKR {request.budget.toLocaleString("en-PK")}</p>
         {details.length > 0 && <details className="mt-4 max-w-xl rounded-xl border border-stone-300 bg-[#fffbf5] p-4">
