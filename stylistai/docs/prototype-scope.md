@@ -1,13 +1,13 @@
 # StylistAI Local Prototype Scope
 
 The working baseline is a Pakistani menswear prototype in English and PKR.
-It runs locally on Node.js 24 with Next.js App Router and SQLite. Public
-preview builds show sample catalog and informational pages. Private local
-flows require development mode and explicit local-account opt-in.
+It runs on Node.js 24 with Next.js App Router and SQLite. The shared local
+test account requires development mode and explicit opt-in. Configured
+Google accounts use a separate database and an invite list.
 
 | Requirement | Prototype coverage |
 |---|---|
-| FR-001–007 | Development test sign-in, profile and measurements, timezone-aware age, and local data deletion. The production identity provider is pending. |
+| FR-001–007 | Google sign-up and sign-in for invited accounts, development test sign-in, profile and measurements, timezone-aware age, and account deletion. Live Google credentials and hosted storage still require configuration. |
 | FR-009–014 | Profile-prefilled requests, PKR budget, review, request-only constraints, daily quota, and duplicate submission protection. |
 | FR-017–024 | Curated styling template and optional local blueprint adapter. Deterministic complete outfit matching enforces the subtotal, dress code, regional delivery, stock and sizes. |
 | FR-025 | Persisted saves and ratings, removal, and constraint-aware swaps with cheaper options when available. |
@@ -35,9 +35,9 @@ a future catalog concern. Local fixtures contain no purchase destinations.
 
 - An approved retailer and its authorized product CSV, image and shopping URLs,
   inventory/size and delivery data, and a named catalog refresh owner.
-- A selected Google OAuth configuration, persistent hosted database, hosting
-  environment, and account ownership implementation. Recheck commercial terms
-  and cost controls before selecting services.
+- An app-owned Google OAuth Web client and a persistent-volume Node.js host,
+  or a storage adapter for the selected host. Recheck commercial terms and
+  cost controls before selecting services.
 - Approved operating entity, jurisdiction, age eligibility, privacy policy,
   terms, retention, and public-pilot access policy.
 - Approved retailer link destinations and the policy for aggregate outbound

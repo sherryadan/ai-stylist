@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { currentLocalAccount, listLocalLooks } from "@/lib/local-account";
+import { currentShopper, listLocalLooks } from "@/lib/local-account";
 import { removeLook } from "./actions";
 
 export default async function SavedOutfitsPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
-  if (!(await currentLocalAccount())) redirect("/profile");
+  if (!(await currentShopper())) redirect("/profile");
   const { page } = await searchParams;
   const index = typeof page === "string" && /^[1-9][0-9]{0,5}$/.test(page) ? Number(page) : 1;
   const outfits = await listLocalLooks((index - 1) * 20);

@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
-import { currentLocalAccount, localDashboardSummary, readLocalProfile } from "@/lib/local-account";
+import { currentShopper, localDashboardSummary, readLocalProfile } from "@/lib/local-account";
 import { occasions } from "@/data/occasions";
 
 const links = [
   { title: "Plan a look", href: "/styling-requests", details: "Create an outfit request for your next occasion." },
   { title: "Saved looks", href: "/saved-outfits", details: "Reopen the sample looks you’ve saved." },
-  { title: "Style profile", href: "/profile", details: "Manage your preferences and local test account." },
+  { title: "Style profile", href: "/profile", details: "Manage your profile and preferences." },
 ];
 
 export default async function DashboardPage() {
-  if (!(await currentLocalAccount())) redirect("/profile");
+  if (!(await currentShopper())) redirect("/profile");
   const [profile, summary] = await Promise.all([readLocalProfile(), localDashboardSummary()]);
   if (!summary) redirect("/profile");
   const stats = [
@@ -24,7 +24,7 @@ export default async function DashboardPage() {
     <section className="bg-[#f4ede2] px-5 py-16 text-stone-950">
       <div className="mx-auto max-w-6xl">
         <h1 className="font-serif text-5xl tracking-tight sm:text-7xl">Your styling desk</h1>
-        <p className="mt-4 text-stone-700">{profile ? `Welcome, ${profile.name}.` : "Complete your style profile to start planning looks."} This activity is stored locally.</p>
+        <p className="mt-4 text-stone-700">{profile ? `Welcome, ${profile.name}.` : "Complete your style profile to start planning looks."}</p>
         <dl className="editorial-enter mt-8 grid gap-3 sm:grid-cols-3">
           {stats.map(({ label, value }) => (
             <div key={label} className="rounded-2xl border border-stone-300 bg-[#fffbf5] p-5">

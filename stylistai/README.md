@@ -5,6 +5,32 @@ looks around a styling request and item budget in PKR.
 
 ## Getting Started
 
+### Google sign-up and sign-in
+
+Create a Google OAuth **Web application** client and register
+`<origin>/auth/google/callback` as an authorized redirect URI. For local
+testing, use the same origin in the browser and app configuration, such as
+`http://localhost:3000`. Use HTTPS for a hosted origin. If the Google
+consent screen is in testing mode, configure its test users in Google Cloud.
+
+Set these server-only variables in `.env.local` for development or in the
+hosting environment's secret settings.
+
+| Variable | Example or purpose |
+|---|---|
+| `GOOGLE_CLIENT_ID` | OAuth Web application client ID |
+| `GOOGLE_CLIENT_SECRET` | OAuth client secret |
+| `STYLIST_AUTH_ORIGIN` | `http://localhost:3000` with no trailing slash |
+| `STYLIST_GOOGLE_ALLOWED_EMAILS` | Comma-separated invited Google email addresses |
+| `STYLIST_HOSTED_DB_FILE` | Absolute path to a persistent writable SQLite file, or `.stylist-hosted.sqlite` locally |
+
+Open `/login` or `/signup` and choose **Continue with Google**. The first
+completed sign-in creates the account and starts profile onboarding. The
+Google subject identifies return visits, and only a digest of the session
+token is stored. The SQLite migration is applied on first use of a fresh
+database. Use a Node.js 24 host with a persistent writable volume for this
+implementation. Workers/D1 integration requires a separate storage adapter.
+
 ### Local style profile
 
 Use Node.js 24 or later and install dependencies with `npm ci`. Start the local

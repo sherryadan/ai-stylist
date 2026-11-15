@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { currentLocalAccount, readLocalStylingRequest } from "@/lib/local-account";
+import { currentShopper, readLocalStylingRequest } from "@/lib/local-account";
 import { occasions } from "@/data/occasions";
 import { MenswearResults } from "@/components/stylist/menswear-results";
 import { stylingRequestDetails } from "@/lib/styling-request";
 
 export default async function RequestPage({ params }: { params: Promise<{ id: string }> }) {
-  if (!(await currentLocalAccount())) redirect("/profile");
+  if (!(await currentShopper())) redirect("/profile");
   const request = await readLocalStylingRequest((await params).id);
   if (!request) notFound();
   const details = stylingRequestDetails(request);

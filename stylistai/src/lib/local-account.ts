@@ -5,6 +5,16 @@ import type { StylingRequest } from "./styling-request";
 import type { MatchedLook } from "@/services/menswear-matching";
 import type { CatalogItem } from "@/data/sample-menswear";
 import type { StylingBlueprint } from "@/services/styling-blueprint";
+import { googleAccountId, googleDatabase } from "./google-account";
+
+export async function currentShopper() {
+  return Boolean(await googleAccountId()) || await currentLocalAccount();
+}
+
+function hostedPayload<T>(query: string, ...values: string[]): T | undefined {
+  const row = googleDatabase().prepare(query).get(...values);
+  return typeof row?.payload === "string" ? JSON.parse(row.payload) as T : undefined;
+}
 
 const cookieName = "stylist-local-session";
 const sessionSeconds = 8 * 60 * 60;
@@ -140,6 +150,8 @@ export type LocalProfile = {
 };
 
 export async function readLocalProfile() {
+  const owner = await googleAccountId();
+  if (owner) return hostedPayload<LocalProfile>("SELECT payload FROM demo_profile WHERE account_id = ?", owner);
   if (!(await currentLocalAccount())) return undefined;
   const profile = accountDatabase().prepare(`
     SELECT name, birth_date, preference, timezone, city, gender, clothing_size, shoe_size,
@@ -152,6 +164,14 @@ export async function readLocalProfile() {
 }
 
 export async function writeLocalProfile(profile: LocalProfile) {
+  const owner = await googleAccountId();
+  if (owner) {
+    googleDatabase().prepare(`
+      INSERT INTO demo_profile VALUES (?, ?, ?) ON CONFLICT(account_id)
+      DO UPDATE SET payload = excluded.payload, updated_at = excluded.updated_at
+    `).run(owner, JSON.stringify(profile), Date.now());
+    return true;
+  }
   if (!(await currentLocalAccount())) return false;
   const db = accountDatabase();
   db.exec("BEGIN IMMEDIATE");
@@ -177,6 +197,18 @@ export async function writeLocalProfile(profile: LocalProfile) {
 }
 
 export async function saveLocalStylingRequest(request: StylingRequest) {
+  const owner = await googleAccountId();
+  if (owner) {
+    const db = googleDatabase();
+    const now = Date.now();
+    const result = db.prepare(`
+      INSERT INTO demo_styling_request (account_id, id, payload, created_at)
+      SELECT ?, ?, ?, ? WHERE (SELECT count(*) FROM demo_styling_request WHERE account_id = ? AND created_at > ?) < 30
+      ON CONFLICT(account_id, id) DO NOTHING
+    `).run(owner, request.id, JSON.stringify(request), now, owner, now - 86_400_000);
+    return result.changes || db.prepare("SELECT 1 FROM demo_styling_request WHERE account_id = ? AND id = ?").get(owner, request.id)
+      ? "saved" : "quota";
+  }
   if (!(await currentLocalAccount())) return "signed-out";
   const db = accountDatabase();
   if (db.prepare("SELECT 1 FROM styling_request WHERE id = ?").get(request.id)) return "saved";
@@ -191,6 +223,8 @@ export async function saveLocalStylingRequest(request: StylingRequest) {
 }
 
 export async function readLocalStylingRequest(id: string): Promise<StylingRequest | undefined> {
+  const owner = await googleAccountId();
+  if (owner) return hostedPayload<StylingRequest>("SELECT payload FROM demo_styling_request WHERE account_id = ? AND id = ?", owner, id);
   if (!(await currentLocalAccount())) return;
   const stored = accountDatabase().prepare("SELECT payload FROM styling_request WHERE id = ?")
     .get(id) as { payload: string } | undefined;
@@ -198,6 +232,7 @@ export async function readLocalStylingRequest(id: string): Promise<StylingReques
 }
 
 export async function claimBlueprintRequest(id: string) {
+  if (await googleAccountId()) return false;
   if (!(await currentLocalAccount())) return false;
   return Boolean(accountDatabase().prepare(`
     INSERT INTO request_blueprint (request_id)
@@ -207,18 +242,30 @@ export async function claimBlueprintRequest(id: string) {
 }
 
 export async function storeBlueprint(id: string, blueprint: StylingBlueprint) {
+  if (await googleAccountId()) return;
   if (!(await currentLocalAccount())) return;
   accountDatabase().prepare("UPDATE request_blueprint SET payload = ? WHERE request_id = ?")
     .run(JSON.stringify(blueprint), id);
 }
 
 export async function readBlueprint(id: string): Promise<StylingBlueprint | undefined> {
+  if (await googleAccountId()) return;
   if (!(await currentLocalAccount())) return;
   const row = accountDatabase().prepare("SELECT payload FROM request_blueprint WHERE request_id = ?").get(id);
   return typeof row?.payload === "string" ? JSON.parse(row.payload) : undefined;
 }
 
 export async function listLocalStylingRequests(before?: string) {
+  const owner = await googleAccountId();
+  if (owner) {
+    const db = googleDatabase();
+    const cursor = before && db.prepare("SELECT id, created_at FROM demo_styling_request WHERE account_id = ? AND id = ?").get(owner, before);
+    const rows = cursor
+      ? db.prepare("SELECT payload, created_at FROM demo_styling_request WHERE account_id = ? AND (created_at, id) < (?, ?) ORDER BY created_at DESC, id DESC LIMIT 21")
+        .all(owner, cursor.created_at, cursor.id)
+      : db.prepare("SELECT payload, created_at FROM demo_styling_request WHERE account_id = ? ORDER BY created_at DESC, id DESC LIMIT 21").all(owner);
+    return rows.map((row) => ({ request: JSON.parse(String(row.payload)) as StylingRequest, createdAt: Number(row.created_at) }));
+  }
   if (!(await currentLocalAccount())) return [];
   const db = accountDatabase();
   const cursor = before && db.prepare("SELECT id, created_at FROM styling_request WHERE id = ?").get(before);
@@ -233,6 +280,18 @@ export async function listLocalStylingRequests(before?: string) {
 }
 
 export async function localDashboardSummary() {
+  const owner = await googleAccountId();
+  if (owner) {
+    const db = googleDatabase();
+    const counts = db.prepare(`
+      SELECT (SELECT count(*) FROM demo_styling_request WHERE account_id = ?) AS requests,
+        (SELECT count(*) FROM demo_saved_look WHERE account_id = ?) AS saved,
+        (SELECT count(*) FROM demo_rating WHERE account_id = ?) AS feedback
+    `).get(owner, owner, owner);
+    const recent = db.prepare("SELECT payload FROM demo_styling_request WHERE account_id = ? ORDER BY created_at DESC, id DESC LIMIT 5").all(owner);
+    return { requests: Number(counts?.requests), saved: Number(counts?.saved), feedback: Number(counts?.feedback),
+      recent: recent.map((row) => JSON.parse(String(row.payload)) as StylingRequest) };
+  }
   if (!(await currentLocalAccount())) return;
   const db = accountDatabase();
   const counts = db.prepare(`
@@ -250,6 +309,13 @@ export async function localDashboardSummary() {
 }
 
 export async function saveLocalLook(requestId: string, look: MatchedLook) {
+  const owner = await googleAccountId();
+  if (owner) {
+    googleDatabase().prepare(`
+      INSERT INTO demo_saved_look VALUES (?, ?, ?, ?, ?) ON CONFLICT(account_id, request_id, look_id) DO NOTHING
+    `).run(owner, requestId, look.id, JSON.stringify(look), Date.now());
+    return true;
+  }
   if (!(await currentLocalAccount())) return false;
   accountDatabase().prepare(`
     INSERT INTO saved_look (request_id, look_id, payload, saved_at) VALUES (?, ?, ?, ?)
@@ -259,6 +325,11 @@ export async function saveLocalLook(requestId: string, look: MatchedLook) {
 }
 
 export async function listLocalLooks(offset: number) {
+  const owner = await googleAccountId();
+  if (owner) return googleDatabase().prepare(`
+    SELECT request_id, payload FROM demo_saved_look WHERE account_id = ?
+    ORDER BY saved_at DESC, request_id, look_id LIMIT 21 OFFSET ?
+  `).all(owner, offset).map((row) => ({ requestId: String(row.request_id), look: JSON.parse(String(row.payload)) as MatchedLook }));
   if (!(await currentLocalAccount())) return [];
   return accountDatabase().prepare("SELECT request_id, payload FROM saved_look ORDER BY saved_at DESC, request_id, look_id LIMIT 21 OFFSET ?")
     .all(offset)
@@ -266,12 +337,25 @@ export async function listLocalLooks(offset: number) {
 }
 
 export async function removeLocalLook(requestId: string, lookId: string) {
+  const owner = await googleAccountId();
+  if (owner) {
+    googleDatabase().prepare("DELETE FROM demo_saved_look WHERE account_id = ? AND request_id = ? AND look_id = ?").run(owner, requestId, lookId);
+    return true;
+  }
   if (!(await currentLocalAccount())) return false;
   accountDatabase().prepare("DELETE FROM saved_look WHERE request_id = ? AND look_id = ?").run(requestId, lookId);
   return true;
 }
 
 export async function writeLocalLookFeedback(requestId: string, lookId: string, rating: "like" | "dislike") {
+  const owner = await googleAccountId();
+  if (owner) {
+    googleDatabase().prepare(`
+      INSERT INTO demo_rating VALUES (?, ?, ?, ?)
+      ON CONFLICT(account_id, request_id, look_id) DO UPDATE SET rating = excluded.rating
+    `).run(owner, requestId, lookId, rating);
+    return true;
+  }
   if (!(await currentLocalAccount())) return false;
   accountDatabase().prepare(`
     INSERT INTO look_feedback (request_id, look_id, rating) VALUES (?, ?, ?)
@@ -281,6 +365,11 @@ export async function writeLocalLookFeedback(requestId: string, lookId: string, 
 }
 
 export async function readLocalLookFeedback(requestId: string): Promise<Record<string, string>> {
+  const owner = await googleAccountId();
+  if (owner) {
+    const rows = googleDatabase().prepare("SELECT look_id, rating FROM demo_rating WHERE account_id = ? AND request_id = ?").all(owner, requestId);
+    return Object.fromEntries(rows.map((row) => [String(row.look_id), String(row.rating)]));
+  }
   if (!(await currentLocalAccount())) return {};
   const rows = accountDatabase().prepare("SELECT look_id, rating FROM look_feedback WHERE request_id = ?").all(requestId);
   return Object.fromEntries(rows.map((row) => [String(row.look_id), String(row.rating)]));
