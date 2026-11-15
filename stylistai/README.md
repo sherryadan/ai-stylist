@@ -5,31 +5,29 @@ looks around a styling request and item budget in PKR.
 
 ## Getting Started
 
-### Google sign-up and sign-in
+### Email and password with Supabase Auth
 
-Create a Google OAuth **Web application** client and register
-`<origin>/auth/google/callback` as an authorized redirect URI. For local
-testing, use the same origin in the browser and app configuration, such as
-`http://localhost:3000`. Use HTTPS for a hosted origin. If the Google
-consent screen is in testing mode, configure its test users in Google Cloud.
+In your Supabase project, enable the Email provider and new user sign-ups.
+Disable **Confirm email** in the Email provider settings for this demo.
 
-Set these server-only variables in `.env.local` for development or in the
-hosting environment's secret settings.
+Set these server-only values in `.env.local` or the hosting environment.
 
-| Variable | Example or purpose |
+| Variable | Purpose |
 |---|---|
-| `GOOGLE_CLIENT_ID` | OAuth Web application client ID |
-| `GOOGLE_CLIENT_SECRET` | OAuth client secret |
-| `STYLIST_AUTH_ORIGIN` | `http://localhost:3000` with no trailing slash |
-| `STYLIST_GOOGLE_ALLOWED_EMAILS` | Comma-separated invited Google email addresses |
-| `STYLIST_HOSTED_DB_FILE` | Absolute path to a persistent writable SQLite file, or `.stylist-hosted.sqlite` locally |
+| `SUPABASE_URL` | Project URL, for example `https://your-project.supabase.co` |
+| `SUPABASE_PUBLISHABLE_KEY` | Project publishable key |
+| `STYLIST_HOSTED_DB_FILE` | Writable persistent SQLite path, or `.stylist-hosted.sqlite` locally |
+| `STYLIST_SIGNUP_CODE` | Set a private access code to limit enrollment in the StylistAI demo |
+| `SUPABASE_SECRET_KEY` | Optional server-only key to enable self-service deletion of the Supabase identity and StylistAI data |
 
-Open `/login` or `/signup` and choose **Continue with Google**. The first
-completed sign-in creates the account and starts profile onboarding. The
-Google subject identifies return visits, and only a digest of the session
-token is stored. The SQLite migration is applied on first use of a fresh
-database. Use a Node.js 24 host with a persistent writable volume for this
-implementation. Workers/D1 integration requires a separate storage adapter.
+Open `/signup` to create an account and enter the app immediately, or
+`/login` to return. When the demo access code is set, accounts must enroll
+through StylistAI before they can sign in to the app. Passwords are handled by
+Supabase Auth. StylistAI stores profiles and activity in SQLite, keyed by the
+Supabase user ID and project. Deploy with Node.js 24 and a persistent volume
+if you want to host this SQLite-based prototype. Existing Google-linked
+records are preserved in the database. Linking them to a new identity
+requires a separate migration.
 
 ### Local style profile
 

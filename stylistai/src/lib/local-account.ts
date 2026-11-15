@@ -5,14 +5,14 @@ import type { StylingRequest } from "./styling-request";
 import type { MatchedLook } from "@/services/menswear-matching";
 import type { CatalogItem } from "@/data/sample-menswear";
 import type { StylingBlueprint } from "@/services/styling-blueprint";
-import { googleAccountId, googleDatabase } from "./google-account";
+import { passwordAccountId, passwordDatabase } from "./password-account";
 
 export async function currentShopper() {
-  return Boolean(await googleAccountId()) || await currentLocalAccount();
+  return Boolean(await passwordAccountId()) || await currentLocalAccount();
 }
 
 function hostedPayload<T>(query: string, ...values: string[]): T | undefined {
-  const row = googleDatabase().prepare(query).get(...values);
+  const row = passwordDatabase().prepare(query).get(...values);
   return typeof row?.payload === "string" ? JSON.parse(row.payload) as T : undefined;
 }
 
@@ -150,7 +150,7 @@ export type LocalProfile = {
 };
 
 export async function readLocalProfile() {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) return hostedPayload<LocalProfile>("SELECT payload FROM demo_profile WHERE account_id = ?", owner);
   if (!(await currentLocalAccount())) return undefined;
   const profile = accountDatabase().prepare(`
@@ -164,9 +164,9 @@ export async function readLocalProfile() {
 }
 
 export async function writeLocalProfile(profile: LocalProfile) {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) {
-    googleDatabase().prepare(`
+    passwordDatabase().prepare(`
       INSERT INTO demo_profile VALUES (?, ?, ?) ON CONFLICT(account_id)
       DO UPDATE SET payload = excluded.payload, updated_at = excluded.updated_at
     `).run(owner, JSON.stringify(profile), Date.now());
@@ -197,9 +197,9 @@ export async function writeLocalProfile(profile: LocalProfile) {
 }
 
 export async function saveLocalStylingRequest(request: StylingRequest) {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) {
-    const db = googleDatabase();
+    const db = passwordDatabase();
     const now = Date.now();
     const result = db.prepare(`
       INSERT INTO demo_styling_request (account_id, id, payload, created_at)
@@ -223,7 +223,7 @@ export async function saveLocalStylingRequest(request: StylingRequest) {
 }
 
 export async function readLocalStylingRequest(id: string): Promise<StylingRequest | undefined> {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) return hostedPayload<StylingRequest>("SELECT payload FROM demo_styling_request WHERE account_id = ? AND id = ?", owner, id);
   if (!(await currentLocalAccount())) return;
   const stored = accountDatabase().prepare("SELECT payload FROM styling_request WHERE id = ?")
@@ -232,7 +232,7 @@ export async function readLocalStylingRequest(id: string): Promise<StylingReques
 }
 
 export async function claimBlueprintRequest(id: string) {
-  if (await googleAccountId()) return false;
+  if (await passwordAccountId()) return false;
   if (!(await currentLocalAccount())) return false;
   return Boolean(accountDatabase().prepare(`
     INSERT INTO request_blueprint (request_id)
@@ -242,23 +242,23 @@ export async function claimBlueprintRequest(id: string) {
 }
 
 export async function storeBlueprint(id: string, blueprint: StylingBlueprint) {
-  if (await googleAccountId()) return;
+  if (await passwordAccountId()) return;
   if (!(await currentLocalAccount())) return;
   accountDatabase().prepare("UPDATE request_blueprint SET payload = ? WHERE request_id = ?")
     .run(JSON.stringify(blueprint), id);
 }
 
 export async function readBlueprint(id: string): Promise<StylingBlueprint | undefined> {
-  if (await googleAccountId()) return;
+  if (await passwordAccountId()) return;
   if (!(await currentLocalAccount())) return;
   const row = accountDatabase().prepare("SELECT payload FROM request_blueprint WHERE request_id = ?").get(id);
   return typeof row?.payload === "string" ? JSON.parse(row.payload) : undefined;
 }
 
 export async function listLocalStylingRequests(before?: string) {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) {
-    const db = googleDatabase();
+    const db = passwordDatabase();
     const cursor = before && db.prepare("SELECT id, created_at FROM demo_styling_request WHERE account_id = ? AND id = ?").get(owner, before);
     const rows = cursor
       ? db.prepare("SELECT payload, created_at FROM demo_styling_request WHERE account_id = ? AND (created_at, id) < (?, ?) ORDER BY created_at DESC, id DESC LIMIT 21")
@@ -280,9 +280,9 @@ export async function listLocalStylingRequests(before?: string) {
 }
 
 export async function localDashboardSummary() {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) {
-    const db = googleDatabase();
+    const db = passwordDatabase();
     const counts = db.prepare(`
       SELECT (SELECT count(*) FROM demo_styling_request WHERE account_id = ?) AS requests,
         (SELECT count(*) FROM demo_saved_look WHERE account_id = ?) AS saved,
@@ -309,9 +309,9 @@ export async function localDashboardSummary() {
 }
 
 export async function saveLocalLook(requestId: string, look: MatchedLook) {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) {
-    googleDatabase().prepare(`
+    passwordDatabase().prepare(`
       INSERT INTO demo_saved_look VALUES (?, ?, ?, ?, ?) ON CONFLICT(account_id, request_id, look_id) DO NOTHING
     `).run(owner, requestId, look.id, JSON.stringify(look), Date.now());
     return true;
@@ -325,8 +325,8 @@ export async function saveLocalLook(requestId: string, look: MatchedLook) {
 }
 
 export async function listLocalLooks(offset: number) {
-  const owner = await googleAccountId();
-  if (owner) return googleDatabase().prepare(`
+  const owner = await passwordAccountId();
+  if (owner) return passwordDatabase().prepare(`
     SELECT request_id, payload FROM demo_saved_look WHERE account_id = ?
     ORDER BY saved_at DESC, request_id, look_id LIMIT 21 OFFSET ?
   `).all(owner, offset).map((row) => ({ requestId: String(row.request_id), look: JSON.parse(String(row.payload)) as MatchedLook }));
@@ -337,9 +337,9 @@ export async function listLocalLooks(offset: number) {
 }
 
 export async function removeLocalLook(requestId: string, lookId: string) {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) {
-    googleDatabase().prepare("DELETE FROM demo_saved_look WHERE account_id = ? AND request_id = ? AND look_id = ?").run(owner, requestId, lookId);
+    passwordDatabase().prepare("DELETE FROM demo_saved_look WHERE account_id = ? AND request_id = ? AND look_id = ?").run(owner, requestId, lookId);
     return true;
   }
   if (!(await currentLocalAccount())) return false;
@@ -348,9 +348,9 @@ export async function removeLocalLook(requestId: string, lookId: string) {
 }
 
 export async function writeLocalLookFeedback(requestId: string, lookId: string, rating: "like" | "dislike") {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) {
-    googleDatabase().prepare(`
+    passwordDatabase().prepare(`
       INSERT INTO demo_rating VALUES (?, ?, ?, ?)
       ON CONFLICT(account_id, request_id, look_id) DO UPDATE SET rating = excluded.rating
     `).run(owner, requestId, lookId, rating);
@@ -365,9 +365,9 @@ export async function writeLocalLookFeedback(requestId: string, lookId: string, 
 }
 
 export async function readLocalLookFeedback(requestId: string): Promise<Record<string, string>> {
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) {
-    const rows = googleDatabase().prepare("SELECT look_id, rating FROM demo_rating WHERE account_id = ? AND request_id = ?").all(owner, requestId);
+    const rows = passwordDatabase().prepare("SELECT look_id, rating FROM demo_rating WHERE account_id = ? AND request_id = ?").all(owner, requestId);
     return Object.fromEntries(rows.map((row) => [String(row.look_id), String(row.rating)]));
   }
   if (!(await currentLocalAccount())) return {};

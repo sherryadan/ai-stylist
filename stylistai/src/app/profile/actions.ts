@@ -3,7 +3,8 @@
 import { redirect } from "next/navigation";
 import { deleteLocalAccount, endLocalSession, localAccountEnabled, startLocalSession, writeLocalProfile } from "@/lib/local-account";
 import { z } from "zod";
-import { googleAccountId, googleDatabase, revokeGoogleSession } from "@/lib/google-account";
+import { passwordAccountId, passwordDatabase, revokePasswordSession } from "@/lib/password-account";
+import { supabaseClient, supabaseConfig } from "@/lib/supabase-auth";
 
 export async function signIn() {
   if (!localAccountEnabled()) redirect("/profile");
@@ -12,19 +13,27 @@ export async function signIn() {
 }
 
 export async function signOut() {
-  await revokeGoogleSession();
+  await revokePasswordSession();
   await endLocalSession();
   redirect("/profile");
 }
 
 export async function deleteAccount(form: FormData) {
   if (form.get("confirm") !== "yes") return;
-  const owner = await googleAccountId();
+  const owner = await passwordAccountId();
   if (owner) {
-    googleDatabase().prepare("DELETE FROM demo_account WHERE id = ?").run(owner);
-    await revokeGoogleSession();
+    const config = supabaseConfig();
+    if (!config?.adminKey) redirect("/profile?deleted=unavailable");
+    const db = passwordDatabase();
+    const identity = db.prepare("SELECT identity_subject FROM demo_account WHERE id = ?").get(owner)?.identity_subject;
+    if (typeof identity !== "string") redirect("/profile?deleted=unavailable");
+    const subject = identity.slice(`supabase:${config.url}:`.length);
+    const { error } = await supabaseClient(config.url, config.adminKey).auth.admin.deleteUser(subject);
+    if (error && error.code !== "user_not_found") redirect("/profile?deleted=unavailable");
+    db.prepare("DELETE FROM demo_account WHERE id = ?").run(owner);
+    await revokePasswordSession();
     await endLocalSession();
-    redirect("/profile?deleted=google");
+    redirect("/profile?deleted=account");
   }
   if (await deleteLocalAccount()) redirect("/profile?deleted=1");
   redirect("/profile");
