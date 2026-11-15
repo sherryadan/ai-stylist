@@ -203,8 +203,3 @@ body {
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 60px 60px;
 }
-
-/* Smooth scroll */
-html {
-  scroll-behavior: smooth;
-}
