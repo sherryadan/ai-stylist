@@ -1,5 +1,5 @@
 import { PasswordEntry } from "@/components/account/password-entry";
 
-export default function SignupPage() {
-  return <PasswordEntry registration />;
+export default async function SignupPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
+  return <PasswordEntry registration destination={(await searchParams).next} />;
 }

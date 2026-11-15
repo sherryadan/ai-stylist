@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { profileHandoff } from "@/lib/return-destination";
 import { ArrowUpRight } from "lucide-react";
 import { currentShopper, localDashboardSummary, readLocalProfile } from "@/lib/local-account";
 import { occasions } from "@/data/occasions";
@@ -11,7 +12,7 @@ const links = [
 ];
 
 export default async function DashboardPage() {
-  if (!(await currentShopper())) redirect("/profile");
+  if (!(await currentShopper())) redirect(profileHandoff("/profile", "/dashboard"));
   const [profile, summary] = await Promise.all([readLocalProfile(), localDashboardSummary()]);
   if (!summary) redirect("/profile");
   const stats = [
@@ -23,7 +24,7 @@ export default async function DashboardPage() {
   return (
     <section className="bg-[#f4ede2] px-5 py-16 text-stone-950">
       <div className="mx-auto max-w-6xl">
-        <h1 className="font-serif text-5xl tracking-tight sm:text-7xl">Your styling desk</h1>
+        <h1 className="font-serif text-4xl tracking-tight sm:text-7xl">Your styling desk</h1>
         <p className="mt-4 text-stone-700">{profile ? `Welcome, ${profile.name}.` : "Complete your style profile to start planning looks."}</p>
         <dl className="editorial-enter mt-8 grid gap-3 sm:grid-cols-3">
           {stats.map(({ label, value }) => (

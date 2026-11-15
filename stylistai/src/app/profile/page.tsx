@@ -4,6 +4,7 @@ import { ProfileForm } from "./profile-form";
 import Link from "next/link";
 import { passwordAccountId } from "@/lib/password-account";
 import { supabaseConfig } from "@/lib/supabase-auth";
+import { profileHandoff, returnDestination } from "@/lib/return-destination";
 
 function ageDisplay(birthDate: string, timezone: string) {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(new Date());
@@ -17,18 +18,19 @@ function ageDisplay(birthDate: string, timezone: string) {
   return `${years} ${years === 1 ? "year" : "years"}, ${elapsed} ${elapsed === 1 ? "day" : "days"}`;
 }
 
-export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string }> }) {
+export default async function ProfilePage({ searchParams }: { searchParams: Promise<{ saved?: string; deleted?: string; next?: string }> }) {
   const account = await passwordAccountId();
   const config = supabaseConfig();
   const signedIn = Boolean(account) || await currentLocalAccount();
   const profile = signedIn ? await readLocalProfile() : undefined;
-  const { saved, deleted } = await searchParams;
+  const { saved, deleted, next: destination } = await searchParams;
+  const next = returnDestination(destination);
 
   return (
     <section className="bg-[#f4ede2] px-5 py-16 text-stone-950 sm:py-24">
       <div className="mx-auto grid max-w-5xl gap-10 lg:grid-cols-[1fr_1.3fr]">
         <div>
-          <h1 className="font-serif text-5xl tracking-tight sm:text-7xl">Your style profile</h1>
+          <h1 className="font-serif text-4xl tracking-tight sm:text-7xl">Your style profile</h1>
           <p className="mt-5 max-w-sm text-lg text-stone-700">Set the preferences you want to carry into your styling requests.</p>
           {profile && <p className="mt-5 text-stone-700">Age · {ageDisplay(profile.birth_date, profile.timezone)}</p>}
         </div>
@@ -37,7 +39,7 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
           {deleted === "account" && <p role="status" className="mb-5 text-green-900">StylistAI account deleted.</p>}
           {signedIn ? <>
             {saved === "1" && <p role="status" className="mb-5 text-green-900">Profile saved.</p>}
-            <ProfileForm profile={profile} />
+            <ProfileForm profile={profile} next={next} />
             {profile && <div className="mt-6 flex flex-wrap gap-4">
               <Link className="underline underline-offset-4" href="/dashboard">Styling desk</Link>
               <Link className="underline underline-offset-4" href="/styling-requests">Plan a look</Link>
@@ -56,11 +58,12 @@ export default async function ProfilePage({ searchParams }: { searchParams: Prom
             </details>}
           </> : <>
             {config && <div className="mb-5 flex flex-wrap items-center gap-4">
-              <Link href="/login" className="inline-block rounded-full bg-stone-950 px-6 py-3 text-white hover:bg-orange-950">Sign in</Link>
-              <Link href="/signup" className="underline underline-offset-4">Create an account</Link>
+              <Link href={profileHandoff("/login", next)} className="inline-block rounded-full bg-stone-950 px-6 py-3 text-white hover:bg-orange-950">Sign in</Link>
+              <Link href={profileHandoff("/signup", next)} className="inline-flex min-h-11 items-center underline underline-offset-4">Create an account</Link>
             </div>}
             {localAccountEnabled() ? (
             <form action={signIn}>
+              {next && <input type="hidden" name="next" value={next} />}
               {deleted === "1" && <p className="mb-5 text-green-900" role="status">Local account data deleted.</p>}
               <p className="mb-5 text-stone-700">Use the shared local test account with sample information.</p>
               <button className="rounded-full bg-stone-950 px-6 py-3 text-white hover:bg-orange-950">Open local test account</button>

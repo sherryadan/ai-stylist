@@ -14,7 +14,7 @@ function SaveLookForm({ requestId, lookId }: { requestId: string; lookId: string
     <form className="mt-4" action={action}>
       <input type="hidden" name="requestId" value={requestId} />
       <input type="hidden" name="lookId" value={lookId} />
-      <button className="rounded-full bg-stone-950 px-4 py-2 text-sm text-white disabled:opacity-60" disabled={pending || status === "Look saved."}>
+      <button className="min-h-11 rounded-full bg-stone-950 px-4 py-2 text-sm text-white disabled:opacity-60" disabled={pending || status === "Look saved."}>
         {pending ? "Saving…" : status === "Look saved." ? "Saved" : "Save look"}
       </button>
       {status && <p className="mt-2 text-sm" role="status">{status}</p>}
@@ -31,7 +31,7 @@ function LookFeedback({ requestId, lookId, rating }: { requestId: string; lookId
       <input type="hidden" name="lookId" value={lookId} />
       {(["like", "dislike"] as const).map((value) => (
         <button key={value} type="submit" name="rating" value={value} aria-pressed={current === value} disabled={pending}
-          className="rounded-full border border-stone-400 px-3 py-1.5 text-sm aria-pressed:border-stone-950 aria-pressed:bg-stone-950 aria-pressed:text-white disabled:opacity-60">
+          className="min-h-11 rounded-full border border-stone-400 px-3 py-1.5 text-sm aria-pressed:border-stone-950 aria-pressed:bg-stone-950 aria-pressed:text-white disabled:opacity-60">
           {value === "like" ? "Like" : "Dislike"}
         </button>
       ))}
@@ -75,7 +75,7 @@ export function MenswearLookCard({ initial, options, dressCode, requestId, feedb
               <p>{item.name}</p>
               <p className="text-sm text-stone-700">{money(item.price)} · {item.brand}</p>
               <p className="text-sm text-stone-700">Sizes {item.variants.filter(({ inStock }) => inStock).map(({ size }) => size).join(", ")}</p>
-              <button type="button" className="mt-1 text-sm underline underline-offset-4"
+              <button type="button" className="min-h-11 text-sm underline underline-offset-4"
                 aria-label={`Swap ${item.name}`} aria-expanded={slot === item.slot}
                 onClick={() => setSlot(slot === item.slot ? undefined : item.slot)}>Swap item</button>
             </div>
@@ -90,7 +90,7 @@ export function MenswearLookCard({ initial, options, dressCode, requestId, feedb
               const item = alternative.items.find((candidate) => candidate.slot === slot);
               return (
                 <li key={alternative.id}>
-                  <button type="button" className="w-full rounded-lg border border-stone-300 bg-white p-2 text-left text-sm hover:bg-stone-200"
+                  <button type="button" className="min-h-11 w-full rounded-lg border border-stone-300 bg-white p-2 text-left text-sm hover:bg-stone-200"
                     onClick={() => { setLook(alternative); setSlot(undefined); }}>
                     {item?.name} · {money(alternative.subtotal)} total
                     {alternative.subtotal < look.subtotal && <span className="block text-green-900">Save {money(look.subtotal - alternative.subtotal)}</span>}
@@ -101,7 +101,7 @@ export function MenswearLookCard({ initial, options, dressCode, requestId, feedb
           </ul> : <p className="mt-2 text-sm">No replacement meets this request’s constraints.</p>}
         </div>
       )}
-      {look.id !== initial.id && <button type="button" className="mt-3 text-sm underline underline-offset-4"
+      {look.id !== initial.id && <button type="button" className="mt-1 min-h-11 text-sm underline underline-offset-4"
         onClick={() => { setLook(initial); setSlot(undefined); }}>Reset to original look</button>}
       <SaveLookForm key={look.id} requestId={requestId} lookId={look.id} />
       <LookFeedback key={`feedback-${look.id}`} requestId={requestId} lookId={look.id} rating={feedback[look.id]} />

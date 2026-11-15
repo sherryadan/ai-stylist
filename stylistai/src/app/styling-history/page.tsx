@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { profileHandoff } from "@/lib/return-destination";
 import { currentShopper, listLocalStylingRequests, readLocalProfile } from "@/lib/local-account";
 import { occasions } from "@/data/occasions";
 
 export default async function StylingHistoryPage({ searchParams }: { searchParams: Promise<{ before?: string }> }) {
-  if (!(await currentShopper())) redirect("/profile");
+  if (!(await currentShopper())) redirect(profileHandoff("/profile", "/styling-history"));
   const { before } = await searchParams;
   const entries = await listLocalStylingRequests(typeof before === "string" ? before : undefined);
   const profile = await readLocalProfile();
@@ -14,7 +15,7 @@ export default async function StylingHistoryPage({ searchParams }: { searchParam
   return (
     <section className="bg-[#f4ede2] px-5 py-16 text-stone-950">
       <div className="mx-auto max-w-4xl">
-        <h1 className="font-serif text-5xl tracking-tight sm:text-7xl">Your styling history</h1>
+        <h1 className="font-serif text-4xl tracking-tight sm:text-7xl">Your styling history</h1>
         <Link href="/styling-requests" className="mt-5 inline-block underline underline-offset-4">Plan a new look</Link>
         {displayed.length === 0 ? <p className="mt-8">There are no requests here yet.</p> : (
           <ul className="mt-8 divide-y divide-stone-300 rounded-2xl border border-stone-300 bg-[#fffbf5]">

@@ -5,11 +5,12 @@ import { deleteLocalAccount, endLocalSession, localAccountEnabled, startLocalSes
 import { z } from "zod";
 import { passwordAccountId, revokePasswordSession } from "@/lib/password-account";
 import { supabaseClient, supabaseConfig } from "@/lib/supabase-auth";
+import { returnDestination } from "@/lib/return-destination";
 
-export async function signIn() {
+export async function signIn(form: FormData) {
   if (!localAccountEnabled()) redirect("/profile");
   await startLocalSession();
-  redirect("/profile");
+  redirect(returnDestination(form.get("next")) ?? "/profile");
 }
 
 export async function signOut() {
@@ -66,5 +67,5 @@ export async function saveProfile(_: string, form: FormData): Promise<string> {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: parsed.data.timezone }).format(new Date());
   if (parsed.data.birth_date > today) return "Enter a birth date that is today or earlier.";
   if (!(await writeLocalProfile(parsed.data))) return "Your session expired. Sign in again to save.";
-  return redirect("/profile?saved=1");
+  return redirect(returnDestination(form.get("next")) ?? "/profile?saved=1");
 }

@@ -84,7 +84,7 @@ export function RequestForm({ id, profile, initialCategory, initialOccasion }: {
           {result && <p className="mt-4 text-red-900" role="alert">{result}</p>}
           <div className="mt-6 flex flex-wrap gap-4">
             <button className={button} disabled={pending}>{pending ? "Saving…" : "Save request"}</button>
-            <button type="button" className="underline underline-offset-4" disabled={pending} onClick={() => setRequest(undefined)}>Edit request</button>
+            <button type="button" className="min-h-11 underline underline-offset-4" disabled={pending} onClick={() => setRequest(undefined)}>Edit request</button>
           </div>
         </form>
       )}

@@ -1,16 +1,17 @@
 "use client";
 
-import { useActionState } from "react";
+import { useRecoverableForm } from "@/hooks/use-recoverable-form";
 import type { LocalProfile } from "@/lib/local-account";
 import { saveProfile } from "./actions";
 
 const field = "mt-2 w-full rounded-lg border border-stone-400 bg-white px-4 py-3 text-stone-950 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-900";
 
-export function ProfileForm({ profile }: { profile?: LocalProfile }) {
-  const [error, action, pending] = useActionState(saveProfile, "");
+export function ProfileForm({ profile, next }: { profile?: LocalProfile; next?: string }) {
+  const { message: error, action, pending, onSubmit, errorRef } = useRecoverableForm(saveProfile);
 
   return (
-    <form action={action} className="editorial-enter grid gap-5 sm:grid-cols-2">
+    <form action={action} onSubmit={onSubmit} className="editorial-enter grid gap-5 sm:grid-cols-2">
+      {next && <input type="hidden" name="next" value={next} />}
       <label>Preferred name<input className={field} name="name" autoComplete="given-name" required maxLength={80} defaultValue={profile?.name} /></label>
       <label>Date of birth<input className={field} type="date" name="birth_date" required defaultValue={profile?.birth_date} /></label>
       <label>Clothing preference<select className={field} name="preference" defaultValue={profile?.preference ?? "Both"}>
@@ -34,7 +35,7 @@ export function ProfileForm({ profile }: { profile?: LocalProfile }) {
           </select></label>
         </div>
       </details>
-      {error && <p role="alert" className="text-red-900 sm:col-span-2">{error}</p>}
+      {error && <p ref={errorRef} tabIndex={-1} role="alert" className="scroll-mt-24 text-red-900 sm:col-span-2">{error}</p>}
       <button disabled={pending} className="rounded-full bg-stone-950 px-6 py-3 text-white hover:bg-orange-950 disabled:opacity-60 sm:col-span-2 sm:justify-self-start">
         {pending ? "Saving…" : "Save profile"}
       </button>
