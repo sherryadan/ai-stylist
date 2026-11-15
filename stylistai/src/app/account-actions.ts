@@ -46,7 +46,7 @@ async function authenticate(form: FormData, registration: boolean): Promise<stri
     }
     const { user, session } = result.data;
     const identity = `supabase:${config.url}:${user.id}`;
-    if (!(await issuePasswordSession(identity, session.expires_in, registration || !config.signupCode))) {
+    if (!(await issuePasswordSession(identity, session.expires_in, registration || !config.signupCode, session.access_token))) {
       return "This account hasn’t joined the private demo. Use the sign-up form with the demo access code.";
     }
   } catch {

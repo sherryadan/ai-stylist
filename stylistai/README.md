@@ -29,6 +29,20 @@ if you want to host this SQLite-based prototype. Existing Google-linked
 records are preserved in the database. Linking them to a new identity
 requires a separate migration.
 
+#### Use Supabase Postgres for shopper data
+
+Apply [the shopper data migration](supabase/migrations/20261115010000_shopper_data.sql)
+once in the project's SQL Editor or through the authenticated Supabase CLI.
+Then set `STYLIST_SHOPPER_STORAGE=supabase` and restart the app. Sign out and
+sign in again so the app can use a fresh Supabase access token.
+
+Profiles, styling requests, saved looks and ratings then write to Postgres
+using the shopper's token and row-level security. Keep
+`STYLIST_HOSTED_DB_FILE` for the app's account enrollment and sessions.
+Existing SQLite shopper records stay in their original database. Back up
+the file before moving any existing shopper records. The local test account
+continues to use its local SQLite store.
+
 ### Local style profile
 
 Use Node.js 24 or later and install dependencies with `npm ci`. Start the local
