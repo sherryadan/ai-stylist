@@ -6,6 +6,8 @@ import { cookies } from "next/headers";
 import { supabaseConfig } from "./supabase-auth";
 
 export const passwordSessionCookie = "stylist-password-session";
+export const shopperAccessCookie = "stylist-shopper-access";
+export const usesSupabaseShopperStorage = () => process.env.STYLIST_SHOPPER_STORAGE === "supabase";
 const tokenDigest = (token: string) => createHash("sha256").update(token).digest("hex");
 let database: DatabaseSync | undefined;
 
@@ -31,7 +33,7 @@ export function passwordDatabase() {
   return connection;
 }
 
-export async function issuePasswordSession(identity: string, lifetime: number, createAccount: boolean) {
+export async function issuePasswordSession(identity: string, lifetime: number, createAccount: boolean, accessToken: string) {
   const db = passwordDatabase();
   const jar = await cookies();
   const previous = jar.get(passwordSessionCookie)?.value;
@@ -47,13 +49,17 @@ export async function issuePasswordSession(identity: string, lifetime: number, c
   const maxAge = Math.min(8 * 60 * 60, Math.floor(lifetime));
   db.prepare("INSERT INTO demo_session VALUES (?, ?, ?)").run(tokenDigest(token), account.id, now + maxAge * 1000);
   db.prepare("DELETE FROM demo_session WHERE expires_at <= ? OR token_digest = ?").run(now, previous ? tokenDigest(previous) : "");
-  jar.set(passwordSessionCookie, token, { httpOnly: true, secure: process.env.NODE_ENV === "production",
-    sameSite: "lax", path: "/", maxAge });
+  const options = { httpOnly: true, secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const, path: "/", maxAge };
+  jar.set(passwordSessionCookie, token, options);
+  if (usesSupabaseShopperStorage()) jar.set(shopperAccessCookie, accessToken, options);
   return true;
 }
 
 export async function passwordAccountId() {
-  const token = (await cookies()).get(passwordSessionCookie)?.value;
+  const jar = await cookies();
+  const token = jar.get(passwordSessionCookie)?.value;
+  if (usesSupabaseShopperStorage() && !jar.get(shopperAccessCookie)?.value) return;
   const config = supabaseConfig();
   if (!token || !/^[\w-]{43}$/.test(token) || !config) return;
   const row = passwordDatabase().prepare(`
@@ -68,4 +74,5 @@ export async function revokePasswordSession() {
   const token = jar.get(passwordSessionCookie)?.value;
   if (token && supabaseConfig()) passwordDatabase().prepare("DELETE FROM demo_session WHERE token_digest = ?").run(tokenDigest(token));
   if (token) jar.delete(passwordSessionCookie);
+  if (jar.has(shopperAccessCookie)) jar.delete(shopperAccessCookie);
 }

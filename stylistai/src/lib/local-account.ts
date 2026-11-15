@@ -5,7 +5,8 @@ import type { StylingRequest } from "./styling-request";
 import type { MatchedLook } from "@/services/menswear-matching";
 import type { CatalogItem } from "@/data/sample-menswear";
 import type { StylingBlueprint } from "@/services/styling-blueprint";
-import { passwordAccountId, passwordDatabase } from "./password-account";
+import { passwordAccountId, passwordDatabase, usesSupabaseShopperStorage } from "./password-account";
+import { supabaseShopper } from "./supabase-shopper";
 
 export async function currentShopper() {
   return Boolean(await passwordAccountId()) || await currentLocalAccount();
@@ -151,6 +152,7 @@ export type LocalProfile = {
 
 export async function readLocalProfile() {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).profile();
   if (owner) return hostedPayload<LocalProfile>("SELECT payload FROM demo_profile WHERE account_id = ?", owner);
   if (!(await currentLocalAccount())) return undefined;
   const profile = accountDatabase().prepare(`
@@ -165,6 +167,7 @@ export async function readLocalProfile() {
 
 export async function writeLocalProfile(profile: LocalProfile) {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).saveProfile(profile);
   if (owner) {
     passwordDatabase().prepare(`
       INSERT INTO demo_profile VALUES (?, ?, ?) ON CONFLICT(account_id)
@@ -198,6 +201,7 @@ export async function writeLocalProfile(profile: LocalProfile) {
 
 export async function saveLocalStylingRequest(request: StylingRequest) {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).saveRequest(request);
   if (owner) {
     const db = passwordDatabase();
     const now = Date.now();
@@ -224,6 +228,7 @@ export async function saveLocalStylingRequest(request: StylingRequest) {
 
 export async function readLocalStylingRequest(id: string): Promise<StylingRequest | undefined> {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).request(id);
   if (owner) return hostedPayload<StylingRequest>("SELECT payload FROM demo_styling_request WHERE account_id = ? AND id = ?", owner, id);
   if (!(await currentLocalAccount())) return;
   const stored = accountDatabase().prepare("SELECT payload FROM styling_request WHERE id = ?")
@@ -257,6 +262,7 @@ export async function readBlueprint(id: string): Promise<StylingBlueprint | unde
 
 export async function listLocalStylingRequests(before?: string) {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).history(before);
   if (owner) {
     const db = passwordDatabase();
     const cursor = before && db.prepare("SELECT id, created_at FROM demo_styling_request WHERE account_id = ? AND id = ?").get(owner, before);
@@ -281,6 +287,7 @@ export async function listLocalStylingRequests(before?: string) {
 
 export async function localDashboardSummary() {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).summary();
   if (owner) {
     const db = passwordDatabase();
     const counts = db.prepare(`
@@ -310,6 +317,7 @@ export async function localDashboardSummary() {
 
 export async function saveLocalLook(requestId: string, look: MatchedLook) {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).saveLook(requestId, look);
   if (owner) {
     passwordDatabase().prepare(`
       INSERT INTO demo_saved_look VALUES (?, ?, ?, ?, ?) ON CONFLICT(account_id, request_id, look_id) DO NOTHING
@@ -326,6 +334,7 @@ export async function saveLocalLook(requestId: string, look: MatchedLook) {
 
 export async function listLocalLooks(offset: number) {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).listLooks(offset);
   if (owner) return passwordDatabase().prepare(`
     SELECT request_id, payload FROM demo_saved_look WHERE account_id = ?
     ORDER BY saved_at DESC, request_id, look_id LIMIT 21 OFFSET ?
@@ -338,6 +347,7 @@ export async function listLocalLooks(offset: number) {
 
 export async function removeLocalLook(requestId: string, lookId: string) {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).removeLook(requestId, lookId);
   if (owner) {
     passwordDatabase().prepare("DELETE FROM demo_saved_look WHERE account_id = ? AND request_id = ? AND look_id = ?").run(owner, requestId, lookId);
     return true;
@@ -349,6 +359,7 @@ export async function removeLocalLook(requestId: string, lookId: string) {
 
 export async function writeLocalLookFeedback(requestId: string, lookId: string, rating: "like" | "dislike") {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).rate(requestId, lookId, rating);
   if (owner) {
     passwordDatabase().prepare(`
       INSERT INTO demo_rating VALUES (?, ?, ?, ?)
@@ -366,6 +377,7 @@ export async function writeLocalLookFeedback(requestId: string, lookId: string, 
 
 export async function readLocalLookFeedback(requestId: string): Promise<Record<string, string>> {
   const owner = await passwordAccountId();
+  if (owner && usesSupabaseShopperStorage()) return (await supabaseShopper(owner)).feedback(requestId);
   if (owner) {
     const rows = passwordDatabase().prepare("SELECT look_id, rating FROM demo_rating WHERE account_id = ? AND request_id = ?").all(owner, requestId);
     return Object.fromEntries(rows.map((row) => [String(row.look_id), String(row.rating)]));
