@@ -16,32 +16,25 @@ Set these server-only values in `.env.local` or the hosting environment.
 |---|---|
 | `SUPABASE_URL` | Project URL, for example `https://your-project.supabase.co` |
 | `SUPABASE_PUBLISHABLE_KEY` | Project publishable key |
-| `STYLIST_HOSTED_DB_FILE` | Writable persistent SQLite path, or `.stylist-hosted.sqlite` locally |
-| `STYLIST_SIGNUP_CODE` | Set a private access code to limit enrollment in the StylistAI demo |
-| `SUPABASE_SECRET_KEY` | Optional server-only key to enable self-service deletion of the Supabase identity and StylistAI data |
+| `STYLIST_SIGNUP_CODE` | Optional private access code to limit demo enrollment |
+| `SUPABASE_SECRET_KEY` | Server-only key for private demo enrollment and optional self-service account deletion |
 
 Open `/signup` to create an account and enter the app immediately, or
 `/login` to return. When the demo access code is set, accounts must enroll
-through StylistAI before they can sign in to the app. Passwords are handled by
-Supabase Auth. StylistAI stores profiles and activity in SQLite, keyed by the
-Supabase user ID and project. Deploy with Node.js 24 and a persistent volume
-if you want to host this SQLite-based prototype. Existing Google-linked
-records are preserved in the database. Linking them to a new identity
-requires a separate migration.
+through StylistAI before they can sign in to the app. Supabase Auth handles
+passwords and verifies sessions. Users with a session from an earlier app
+version may need to sign in again. If you use private enrollment, users
+enrolled by the old SQLite implementation can enroll again via sign-up
+with their existing credentials and the demo access code.
 
 #### Use Supabase Postgres for shopper data
 
 Apply [the shopper data migration](supabase/migrations/20261115010000_shopper_data.sql)
 once in the project's SQL Editor or through the authenticated Supabase CLI.
-Then set `STYLIST_SHOPPER_STORAGE=supabase` and restart the app. Sign out and
-sign in again so the app can use a fresh Supabase access token.
-
-Profiles, styling requests, saved looks and ratings then write to Postgres
-using the shopper's token and row-level security. Keep
-`STYLIST_HOSTED_DB_FILE` for the app's account enrollment and sessions.
-Existing SQLite shopper records stay in their original database. Back up
-the file before moving any existing shopper records. The local test account
-continues to use its local SQLite store.
+Profiles, requests, saved looks and ratings use Postgres with row-level security.
+Hosted sign-in and shopper storage do not require a writable local disk.
+Existing SQLite files stay available as backups. The optional shared test
+account and its local catalog fixtures still use their local SQLite store.
 
 ### Local style profile
 

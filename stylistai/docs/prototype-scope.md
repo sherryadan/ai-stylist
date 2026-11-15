@@ -1,9 +1,9 @@
 # StylistAI Local Prototype Scope
 
 The working baseline is a Pakistani menswear prototype in English and PKR.
-It runs on Node.js 24 with Next.js App Router and SQLite. The shared local
-test account requires development mode and explicit opt-in. Supabase email
-accounts use a separate database and can require a demo access code.
+It runs on Node.js 24 with Next.js App Router and Supabase Auth and Postgres.
+The optional shared local test account uses SQLite and requires development
+mode and explicit opt-in. Supabase accounts can require a demo access code.
 
 | Requirement | Prototype coverage |
 |---|---|
@@ -16,7 +16,8 @@ accounts use a separate database and can require a demo access code.
 
 ## Storage and interfaces
 
-The server owns the SQLite connection. It stores hashed expiring local
+Supabase verifies hosted sessions and stores hosted shopper data under
+row-level security. In development, the separate SQLite connection stores hashed expiring local
 session tokens, one shared test profile and its optional measurements,
 styling requests, blueprint claims and results, saved looks, ratings,
 imported sample SKUs, and import audit entries. Request-owned records cascade
@@ -35,9 +36,8 @@ a future catalog concern. Local fixtures contain no purchase destinations.
 
 - An approved retailer and its authorized product CSV, image and shopping URLs,
   inventory/size and delivery data, and a named catalog refresh owner.
-- An app-owned Supabase project and a persistent-volume Node.js host, or a
-  storage adapter for the selected host. Recheck commercial terms and cost
-  controls before selecting services.
+- An app-owned Supabase project and a compatible Node.js host. Recheck
+  commercial terms and cost controls before selecting services.
 - Approved operating entity, jurisdiction, age eligibility, privacy policy,
   terms, retention, and public-pilot access policy.
 - Approved retailer link destinations and the policy for aggregate outbound

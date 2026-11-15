@@ -1,9 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  outputFileTracingIncludes: {
-    "/*": ["./migrations/hosted/0001_private_demo.sql"],
-  },
   redirects() {
     return [
       { source: "/stylist", destination: "/styling-requests", permanent: false },

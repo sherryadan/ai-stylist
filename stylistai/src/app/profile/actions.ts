@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { deleteLocalAccount, endLocalSession, localAccountEnabled, startLocalSession, writeLocalProfile } from "@/lib/local-account";
 import { z } from "zod";
-import { passwordAccountId, passwordDatabase, revokePasswordSession } from "@/lib/password-account";
+import { passwordAccountId, revokePasswordSession } from "@/lib/password-account";
 import { supabaseClient, supabaseConfig } from "@/lib/supabase-auth";
 
 export async function signIn() {
@@ -24,13 +24,8 @@ export async function deleteAccount(form: FormData) {
   if (owner) {
     const config = supabaseConfig();
     if (!config?.adminKey) redirect("/profile?deleted=unavailable");
-    const db = passwordDatabase();
-    const identity = db.prepare("SELECT identity_subject FROM demo_account WHERE id = ?").get(owner)?.identity_subject;
-    if (typeof identity !== "string") redirect("/profile?deleted=unavailable");
-    const subject = identity.slice(`supabase:${config.url}:`.length);
-    const { error } = await supabaseClient(config.url, config.adminKey).auth.admin.deleteUser(subject);
+    const { error } = await supabaseClient(config.url, config.adminKey).auth.admin.deleteUser(owner);
     if (error && error.code !== "user_not_found") redirect("/profile?deleted=unavailable");
-    db.prepare("DELETE FROM demo_account WHERE id = ?").run(owner);
     await revokePasswordSession();
     await endLocalSession();
     redirect("/profile?deleted=account");

@@ -24,6 +24,7 @@ async function authenticate(form: FormData, registration: boolean): Promise<stri
     return "Enter a valid email address and a password of at most 72 bytes.";
   }
   if (registration) {
+    if (config.signupCode && !config.adminKey) return "Private demo registration is unavailable.";
     const code = form.get("signupCode");
     if (config.signupCode && (typeof code !== "string" || code.length > 256 || !equalSecret(code, config.signupCode))) {
       return "Enter a valid demo access code.";
@@ -45,10 +46,14 @@ async function authenticate(form: FormData, registration: boolean): Promise<stri
       return registration ? "Registration did not start a session. Ask the demo administrator to check email confirmation settings." : "Sign-in did not start a session. Try again.";
     }
     const { user, session } = result.data;
-    const identity = `supabase:${config.url}:${user.id}`;
-    if (!(await issuePasswordSession(identity, session.expires_in, registration || !config.signupCode, session.access_token))) {
-      return "This account hasn’t joined the private demo. Use the sign-up form with the demo access code.";
+    if (config.signupCode && user.app_metadata.stylist_demo_enrolled !== true) {
+      if (!registration || !config.adminKey) return "Enroll through the sign-up form with the demo access code.";
+      const { error } = await supabaseClient(config.url, config.adminKey).auth.admin.updateUserById(user.id, {
+        app_metadata: { stylist_demo_enrolled: true },
+      });
+      if (error) return "Demo enrollment could not be completed. Try again.";
     }
+    if (!(await issuePasswordSession(session.access_token, session.expires_in))) return "Sign-in did not start a valid session.";
   } catch {
     return "Sign-in is temporarily unavailable. Try again.";
   }
