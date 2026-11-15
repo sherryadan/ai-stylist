@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { passwordDatabase, shopperAccessCookie } from "./password-account";
+import { shopperAccessCookie } from "./password-account";
 import { supabaseClient, supabaseConfig } from "./supabase-auth";
 import type { LocalProfile } from "./local-account";
 import type { StylingRequest } from "./styling-request";
@@ -13,12 +13,10 @@ function checked<T>(result: { data: T; error: unknown }) {
   return result.data;
 }
 
-export async function supabaseShopper(owner: string) {
+export async function supabaseShopper(userId: string) {
   const config = supabaseConfig();
   const token = (await cookies()).get(shopperAccessCookie)?.value;
-  const identity = passwordDatabase().prepare("SELECT identity_subject FROM demo_account WHERE id = ?").get(owner)?.identity_subject;
-  if (!config || !token || typeof identity !== "string") throw new Error("Shopper session expired");
-  const userId = identity.slice(`supabase:${config.url}:`.length);
+  if (!config || !token) throw new Error("Shopper session expired");
   const db = supabaseClient(config.url, config.key, token);
   const requests = () => db.from("stylist_requests").select("id,payload,created_at").eq("user_id", userId);
   const looks = () => db.from("stylist_saved_looks");
