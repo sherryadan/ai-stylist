@@ -3,7 +3,7 @@
 import { useActionState, useState, type FormEvent } from "react";
 import { occasions } from "@/data/occasions";
 import type { LocalProfile } from "@/lib/local-account";
-import { stylingRequestSchema, type StylingRequest } from "@/lib/styling-request";
+import { stylingRequestDetails, stylingRequestSchema, type StylingRequest } from "@/lib/styling-request";
 import { submitRequest } from "./actions";
 
 const field = "mt-2 w-full rounded-lg border border-stone-400 bg-white px-3 py-2 text-stone-950";
@@ -50,7 +50,20 @@ export function RequestForm({ id, profile, initialCategory, initialOccasion }: {
           </select></label>
           <label>Excluded colors<input name="avoidColors" className={field} maxLength={100} placeholder="Comma-separated" /></label>
           <label>Excluded brands<input name="avoidBrands" className={field} maxLength={100} placeholder="Comma-separated" /></label>
-          <label className="sm:col-span-2">Styling notes<textarea name="notes" className={field} maxLength={500} /></label>
+          <details className="rounded-lg border border-stone-300 p-4 sm:col-span-2">
+            <summary className="cursor-pointer">Additional preferences</summary>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              <label>Preferred colors<input name="preferredColors" className={field} maxLength={100} placeholder="Comma-separated" /></label>
+              <label>Preferred brands<input name="preferredBrands" className={field} maxLength={100} placeholder="Comma-separated" /></label>
+              <label>Desired style<input name="style" className={field} maxLength={100} placeholder="e.g. understated, tailored" /></label>
+              <label>Season or weather<input name="season" className={field} maxLength={100} placeholder="e.g. warm evening" /></label>
+              <label>Preferred fit<select name="fit" className={field} defaultValue={profile.preferred_fit}>
+                <option value="">No preference</option><option>Fitted</option><option>Regular</option><option>Relaxed</option>
+              </select></label>
+              <label className="sm:col-span-2">Styling notes<textarea name="notes" className={field} maxLength={500} /></label>
+            </div>
+            <p className="mt-3 text-sm text-stone-700">Color and brand preferences help rank sample looks. Style, weather, fit, and notes are saved as context.</p>
+          </details>
         </div>
         {error && <p className="mt-4 text-red-900" role="alert">{error}</p>}
         <button className={`mt-6 ${button}`}>Review request</button>
@@ -63,9 +76,7 @@ export function RequestForm({ id, profile, initialCategory, initialOccasion }: {
             <div><dt className="font-medium">Occasion</dt><dd>{occasions.find(({ id }) => id === request.occasion)?.name}</dd></div>
             <div><dt className="font-medium">Category</dt><dd>{request.category} menswear</dd></div>
             <div><dt className="font-medium">Item budget</dt><dd>PKR {request.budget.toLocaleString("en-PK")}</dd></div>
-            {Object.entries({ City: request.city, "Clothing size": request.clothingSize, "Shoe size": request.shoeSize,
-              "Dress code": request.dressCode, "Excluded colors": request.avoidColors, "Excluded brands": request.avoidBrands,
-              Notes: request.notes }).filter(([, value]) => value).map(([label, value]) => (
+            {stylingRequestDetails(request).map(([label, value]) => (
                 <div key={label}><dt className="font-medium">{label}</dt><dd className="break-words">{value}</dd></div>
               ))}
           </dl>

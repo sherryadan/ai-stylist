@@ -52,6 +52,9 @@ try {
   assert.equal(await desktop.getByLabel("Clothing size").inputValue(), "M");
   assert.equal(await desktop.getByLabel("Shoe size").inputValue(), "EU 42");
   await desktop.getByLabel("Budget (PKR)").fill("20000");
+  await desktop.getByText("Additional preferences", { exact: true }).click();
+  await desktop.getByLabel("Preferred colors").fill("Navy");
+  await desktop.getByLabel("Season or weather").fill("Warm evening");
   await desktop.getByRole("button", { name: "Review request" }).click();
   await desktop.getByRole("heading", { name: "Review your request" }).waitFor();
   await desktop.getByRole("button", { name: "Edit request" }).click();
@@ -60,6 +63,8 @@ try {
   await desktop.getByRole("button", { name: "Save request" }).click();
   await desktop.getByRole("heading", { name: "Your sample looks" }).waitFor();
   await desktop.getByText("Ranked with a curated styling template.").waitFor();
+  await desktop.getByText("Request details", { exact: true }).click();
+  await desktop.getByText("Warm evening", { exact: true }).waitFor();
   const receipt = new URL(desktop.url()).pathname;
   await desktop.getByRole("button", { name: /^Swap / }).first().click();
   await desktop.getByRole("button", { name: /PKR.* total/ }).first().click();
