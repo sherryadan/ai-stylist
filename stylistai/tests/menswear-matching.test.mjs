@@ -39,3 +39,12 @@ test("exposes honest shortfalls and checks stock, size, brand and delivery", () 
   const unavailable = sampleMenswear.map((item) => ({ ...item, variants: [{ size: "M", inStock: false }] }));
   assert.equal(matchMenswear(request, unavailable).eligible.length, 0);
 });
+
+test("uses preferred colors for ranking and keeps exclusions strict", () => {
+  const input = { ...request, occasion: "casual", category: "Western", preferredColors: " blue, sand ", preferredBrands: "StylistAI Sample" };
+  const best = matchMenswear(input, sampleMenswear).looks[0];
+  assert.ok(best.items.some(({ color }) => color === "Blue"));
+  const excluded = matchMenswear({ ...input, avoidColors: "blue" }, sampleMenswear);
+  assert.ok(excluded.looks.length > 0);
+  assert.ok(excluded.looks.every((look) => look.items.every(({ color }) => color !== "Blue")));
+});

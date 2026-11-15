@@ -9,12 +9,14 @@ export interface MatchedLook {
 }
 
 const normalize = (value: string) => value.trim().toLowerCase();
-const exclusions = (value: string) => new Set(value.split(",").map(normalize).filter(Boolean));
+const normalizedList = (value = "") => new Set(value.split(",").map(normalize).filter(Boolean));
 const neutralColors = new Set(["ivory", "cream", "charcoal", "tan", "black", "white", "sand", "navy", "brown"]);
 
 export function matchMenswear(request: StylingRequest, catalog: readonly CatalogItem[], blueprint?: StylingBlueprint) {
-  const colors = exclusions(request.avoidColors);
-  const brands = exclusions(request.avoidBrands);
+  const colors = normalizedList(request.avoidColors);
+  const brands = normalizedList(request.avoidBrands);
+  const preferredColors = normalizedList(request.preferredColors);
+  const preferredBrands = normalizedList(request.preferredBrands);
   const palette = new Set<string>(blueprint?.preferredColors);
   const eligible = catalog.filter((item) => {
     const size = normalize(item.slot === "footwear" ? request.shoeSize : request.clothingSize);
@@ -45,9 +47,11 @@ export function matchMenswear(request: StylingRequest, catalog: readonly Catalog
       const formalOccasion = ["wedding", "business-meeting"].includes(request.occasion);
       const occasionMatches = items.filter((item) => item.dressCodes.includes(formalOccasion ? "Formal" : "Casual")).length;
       const paletteMatches = items.filter((item) => palette.has(normalize(item.color))).length;
+      const shopperMatches = items.reduce((count, item) =>
+        count + Number(preferredColors.has(normalize(item.color))) + Number(preferredBrands.has(normalize(item.brand))), 0);
       looks.push({
         id: items.map(({ id }) => id).join("+"), items, subtotal,
-        score: (compatibleColors + occasionMatches + paletteMatches * 0.5) / items.length + categoryCoherence * 0.25,
+        score: (compatibleColors + occasionMatches + paletteMatches * 0.5 + shopperMatches) / items.length + categoryCoherence * 0.25,
       });
     }
   }
